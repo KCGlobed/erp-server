@@ -3,6 +3,9 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
 import { Public } from '../common/decorators/public.decorator';
@@ -63,5 +66,29 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Logged out' })
   logout(@Body() dto: RefreshTokenDto) {
     return this.authService.logout(dto.refreshToken);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request OTP to reset password' })
+  @ApiResponse({ status: 200, description: 'OTP sent' })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Public()
+  @Post('verify-otp')
+  @ApiOperation({ summary: 'Verify OTP code' })
+  @ApiResponse({ status: 200, description: 'OTP verified' })
+  verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyOtp(dto);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using OTP' })
+  @ApiResponse({ status: 200, description: 'Password reset' })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }
