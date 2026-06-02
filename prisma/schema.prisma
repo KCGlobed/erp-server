@@ -1,0 +1,470 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  status       UserStatus @default(ACTIVE)
+
+  roles             UserRole[]
+  refreshTokens     RefreshToken[]
+  directPermissions UserPermission[]
+
+  // Academic Management
+  cohortId          String?
+  cohort            Cohort?                   @relation(fields: [cohortId], references: [id])
+  enrollments       CourseEnrollment[]
+  facultyCourses    FacultyCourseAssignment[]
+  facultyCohorts    FacultyCohortAssignment[]
+  invigilations     ExamSchedule[]
+  classesTaught     ClassSchedule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs SystemLog[]
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Permission {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  roles RolePermission[]
+  users UserPermission[]
+
+  createdAt DateTime @default(now())
+}
+
+model UserPermission {
+  userId       String
+  permissionId String
+  grantedBy    String?
+  grantedAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([userId, permissionId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model SystemLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  level      LogLevel @default(INFO)
+  context    String?
+  message    String
+  stack      String?
+  method     String?
+  url        String?
+  statusCode Int?
+  duration   Int?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([context])
+  @@index([createdAt])
+  @@index([level])
+  @@map("system_logs")
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  deviceInfo String?
+  ipAddress  String?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+enum LeaveType {
+  SICK
+  CASUAL
+  EARNED
+  MATERNITY
+  PATERNITY
+  UNPAID
+  OTHER
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ALERT
+  SUCCESS
+  REMINDER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum CourseStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CohortStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  INACTIVE
+}
+
+enum HolidayType {
+  NATIONAL
+  FESTIVAL
+  INSTITUTION
+  SEMESTER_BREAK
+}
+
+enum AcademicEventType {
+  ORIENTATION
+  WORKSHOP
+  SEMINAR
+  GUEST_LECTURE
+  CONVOCATION
+  FACULTY_MEETING
+  OTHER
+}
+
+enum AssessmentType {
+  MID_TERM
+  FINAL
+  VIVA
+  PRACTICAL
+  ASSIGNMENT
+}
+
+model Course {
+  id            String             @id @default(cuid())
+  name          String
+  code          String             @unique
+  description   String?
+  duration      String             // e.g. "2 years" or "6 months"
+  numTrimesters Int                @default(3)
+  status        CourseStatus       @default(ACTIVE)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  curriculums    Curriculum[]
+  cohortCourses  CohortCourse[]
+  enrollments    CourseEnrollment[]
+  facultyCourses FacultyCourseAssignment[]
+  classSchedules ClassSchedule[]
+  events         EventCourse[]
+}
+
+model Curriculum {
+  id        String   @id @default(cuid())
+  courseId  String
+  version   String   // e.g., "v2026", "v1.0"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subjects      Subject[]
+  cohortCourses CohortCourse[]
+
+  @@unique([courseId, version])
+}
+
+model Subject {
+  id               String   @id @default(cuid())
+  curriculumId     String
+  name             String
+  code             String
+  trimester        Int      // 1-based trimester index
+  credits          Int
+  learningOutcomes String?  // text or markdown describing outcomes
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  curriculum     Curriculum      @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  modules        Module[]
+  sessionPlans   SessionPlan[]
+  assessments    Assessment[]
+  classSchedules ClassSchedule[]
+  examSchedules  ExamSchedule[]
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  subjectId   String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics  Topic[]
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  moduleId    String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+}
+
+model SessionPlan {
+  id          String   @id @default(cuid())
+  subjectId   String
+  week        Int      // Week number (e.g. 1, 2, 3)
+  title       String   // e.g. "Introduction to Accounting"
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+}
+
+model Assessment {
+  id        String         @id @default(cuid())
+  subjectId String
+  name      String         // e.g. "Mid-Term", "Final Exam"
+  type      AssessmentType
+  maxMarks  Int
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+}
+
+model Cohort {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  startDate DateTime
+  endDate   DateTime
+  status    CohortStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  students       User[]
+  cohortCourses  CohortCourse[]
+  facultyCohorts FacultyCohortAssignment[]
+  classSchedules ClassSchedule[]
+  examSchedules  ExamSchedule[]
+  holidays       HolidayCohort[]
+  events         EventCohort[]
+}
+
+model CohortCourse {
+  cohortId     String
+  courseId     String
+  curriculumId String
+
+  cohort     Cohort     @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+
+  @@id([cohortId, courseId])
+}
+
+model CourseEnrollment {
+  userId     String
+  courseId   String
+  status     CourseStatus @default(ACTIVE)
+  enrolledAt DateTime     @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId])
+}
+
+model FacultyCourseAssignment {
+  userId     String
+  courseId   String
+  assignedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId])
+}
+
+model FacultyCohortAssignment {
+  userId     String
+  cohortId   String
+  assignedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cohort Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@id([userId, cohortId])
+}
+
+model AcademicSession {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Holiday {
+  id             String      @id @default(cuid())
+  name           String
+  startDate      DateTime
+  endDate        DateTime
+  type           HolidayType
+  visibleToRoles String[]    // e.g. ['FACULTY'] to show only to faculty, empty means global
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  cohorts HolidayCohort[]
+}
+
+model HolidayCohort {
+  holidayId String
+  cohortId  String
+
+  holiday Holiday @relation(fields: [holidayId], references: [id], onDelete: Cascade)
+  cohort  Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@id([holidayId, cohortId])
+}
+
+model AcademicEvent {
+  id             String            @id @default(cuid())
+  title          String
+  description    String?
+  startDate      DateTime
+  endDate        DateTime
+  type           AcademicEventType
+  visibleToRoles String[]          // e.g. ['FACULTY'] to show only to faculty, empty means global
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  cohorts EventCohort[]
+  courses EventCourse[]
+}
+
+model EventCohort {
+  eventId  String
+  cohortId String
+
+  event  AcademicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  cohort Cohort        @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, cohortId])
+}
+
+model EventCourse {
+  eventId  String
+  courseId String
+
+  event  AcademicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  course Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, courseId])
+}
+
+model ExamSchedule {
+  id            String         @id @default(cuid())
+  subjectId     String
+  cohortId      String
+  date          DateTime
+  startTime     DateTime
+  endTime       DateTime
+  room          String?
+  type          AssessmentType
+  invigilatorId String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  subject     Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  cohort      Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  invigilator User?   @relation(fields: [invigilatorId], references: [id])
+}
+
+model ClassSchedule {
+  id        String   @id @default(cuid())
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+  courseId  String
+  cohortId  String
+  subjectId String
+  facultyId String
+  room      String
+  topic     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  cohort  Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  faculty User    @relation(fields: [facultyId], references: [id])
+}
