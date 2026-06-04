@@ -4,6 +4,7 @@ import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CreateCurriculumDto } from './dto/create-curriculum.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
+import { AuthUser } from '../common/types/auth-user.type';
 
 @Injectable()
 export class CoursesService {
@@ -22,11 +23,23 @@ export class CoursesService {
     });
   }
 
-  async findAll() {
+  async findAll(currentUser?: AuthUser) {
+    let courseIdFilter: string[] | undefined;
+
+    if (currentUser?.roles.includes('FACULTY')) {
+      const assignments = await this.prisma.facultyCourseAssignment.findMany({
+        where: { userId: currentUser.id },
+        select: { courseId: true },
+      });
+      courseIdFilter = assignments.map((a) => a.courseId);
+    }
+
     return this.prisma.course.findMany({
+      where: courseIdFilter !== undefined ? { id: { in: courseIdFilter } } : undefined,
       include: {
         curriculums: {
           include: {
+            subjects: true,
             _count: { select: { subjects: true } },
           },
         },

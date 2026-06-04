@@ -138,6 +138,53 @@ async function main() {
     update: {},
   });
 
+  // Seed 15 Students (start from +3)
+  for (let i = 3; i <= 17; i++) {
+    const email = `suneel.kumar+${i}@kcglobed.com`;
+    const userPasswordHash = await bcrypt.hash(email, 10);
+    const u = await prisma.user.upsert({
+      where: { email },
+      create: {
+        email,
+        passwordHash: userPasswordHash,
+        firstName: 'Student',
+        lastName: `Plus${i}`,
+        roles: { create: { roleId: roleByName['STUDENT'].id } },
+      },
+      update: {},
+    });
+
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId: u.id, roleId: roleByName['STUDENT'].id } },
+      create: { userId: u.id, roleId: roleByName['STUDENT'].id },
+      update: {},
+    });
+  }
+
+  // Seed 4 Faculty (start from +18)
+  for (let i = 18; i <= 21; i++) {
+    const email = `suneel.kumar+${i}@kcglobed.com`;
+    const userPasswordHash = await bcrypt.hash(email, 10);
+    const u = await prisma.user.upsert({
+      where: { email },
+      create: {
+        email,
+        passwordHash: userPasswordHash,
+        firstName: 'Faculty',
+        lastName: `Plus${i}`,
+        roles: { create: { roleId: roleByName['FACULTY'].id } },
+      },
+      update: {},
+    });
+
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId: u.id, roleId: roleByName['FACULTY'].id } },
+      create: { userId: u.id, roleId: roleByName['FACULTY'].id },
+      update: {},
+    });
+  }
+
+
   // 5. Seed Courses & Curriculums
   const mbaCourse = await prisma.course.upsert({
     where: { code: 'MBA-100' },

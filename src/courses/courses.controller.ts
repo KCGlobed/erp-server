@@ -7,6 +7,8 @@ import { CreateCurriculumDto } from './dto/create-curriculum.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { RequirePermissions } from '../common/decorators/permissions.decorator';
 import { PERMISSION_NAMES } from '../common/constants/rbac.constants';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/types/auth-user.type';
 
 @ApiTags('Courses')
 @ApiBearerAuth()
@@ -22,9 +24,9 @@ export class CoursesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all courses' })
-  findAll() {
-    return this.coursesService.findAll();
+  @ApiOperation({ summary: 'List all courses (faculty see only assigned)' })
+  findAll(@CurrentUser() currentUser: AuthUser) {
+    return this.coursesService.findAll(currentUser);
   }
 
   @Get(':id')

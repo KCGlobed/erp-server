@@ -18,6 +18,8 @@ import { CoursesModule } from './courses/courses.module';
 import { CohortsModule } from './cohorts/cohorts.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { TimetableModule } from './timetable/timetable.module';
+import { FacultyAssignmentsModule } from './faculty-assignments/faculty-assignments.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { TimetableModule } from './timetable/timetable.module';
     CohortsModule,
     CalendarModule,
     TimetableModule,
+    FacultyAssignmentsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
