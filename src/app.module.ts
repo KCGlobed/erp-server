@@ -20,6 +20,7 @@ import { CalendarModule } from './calendar/calendar.module';
 import { TimetableModule } from './timetable/timetable.module';
 import { FacultyAssignmentsModule } from './faculty-assignments/faculty-assignments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FacultyProfileModule } from './faculty-profile/faculty-profile.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TimetableModule,
     FacultyAssignmentsModule,
     DashboardModule,
+    FacultyProfileModule,
   ],
   controllers: [AppController],
   providers: [

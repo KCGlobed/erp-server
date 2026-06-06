@@ -28,10 +28,38 @@ model User {
   invigilations     ExamSchedule[]
   classesTaught     ClassSchedule[]
 
+  facultyProfile    FacultyProfile?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   logs SystemLog[]
+}
+
+model FacultyProfile {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  middleName              String?
+  gender                  Gender?
+  profilePhotoUrl         String?
+  personalEmail           String?
+  mobileNumber            String?
+  alternateMobileNumber   String?
+  emergencyContactName    String?
+  emergencyContactNumber  String?
+  currentAddress          String?
+  permanentAddress        String?
+  experienceYears         Int?
+  experienceDescription   String?
+  dateOfBirth             DateTime?
+  dateOfJoining           DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faculty_profiles")
 }
 
 model Role {
