@@ -34,4 +34,4 @@ COPY --from=builder /app/prisma ./prisma
 EXPOSE 8080
 
 # Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main.js"]
