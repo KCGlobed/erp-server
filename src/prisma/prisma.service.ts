@@ -27,7 +27,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit(): Promise<void> {
     this.logger.log('Connecting to database...');
-    await this.$connect();
+    // Add a 5-second timeout to prevent silent hangs in Cloud Run if DB is unreachable
+    const connectPromise = this.$connect();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timed out after 5 seconds. Check Cloud SQL connections or DATABASE_URL.')), 5000)
+    );
+    await Promise.race([connectPromise, timeoutPromise]);
     this.logger.log('Database connected successfully');
 
     // Log slow queries in development
