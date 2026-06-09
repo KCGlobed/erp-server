@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CohortsService } from './cohorts.service';
 import { CreateCohortDto } from './dto/create-cohort.dto';
@@ -55,29 +63,48 @@ export class CohortsController {
 
   @Post(':id/students')
   @RequirePermissions(PERMISSION_NAMES.MANAGE_ACADEMICS)
-  @ApiOperation({ summary: 'Assign student(s) to a cohort and auto-enroll them in courses (Admin)' })
-  assignStudents(@Param('id') id: string, @Body() dto: { studentIds: string[] }) {
+  @ApiOperation({
+    summary:
+      'Assign student(s) to a cohort and auto-enroll them in courses (Admin)',
+  })
+  assignStudents(
+    @Param('id') id: string,
+    @Body() dto: { studentIds: string[] },
+  ) {
     return this.cohortsService.assignStudents(id, dto.studentIds);
   }
 
   @Post(':id/faculty')
   @RequirePermissions(PERMISSION_NAMES.MANAGE_ACADEMICS)
   @ApiOperation({ summary: 'Assign faculty user(s) to a cohort (Admin)' })
-  assignFaculty(@Param('id') id: string, @Body() dto: { facultyIds: string[] }) {
+  assignFaculty(
+    @Param('id') id: string,
+    @Body() dto: { facultyIds: string[] },
+  ) {
     return this.cohortsService.assignFaculty(id, dto.facultyIds);
   }
 
   @Post('students/:userId/courses')
   @RequirePermissions(PERMISSION_NAMES.MANAGE_ACADEMICS)
-  @ApiOperation({ summary: 'Enroll a student directly into multiple courses (Admin)' })
-  enrollStudentCourses(@Param('userId') userId: string, @Body() dto: { courseIds: string[] }) {
+  @ApiOperation({
+    summary: 'Enroll a student directly into multiple courses (Admin)',
+  })
+  enrollStudentCourses(
+    @Param('userId') userId: string,
+    @Body() dto: { courseIds: string[] },
+  ) {
     return this.cohortsService.enrollStudentCourses(userId, dto.courseIds);
   }
 
   @Post('faculty/:userId/courses')
   @RequirePermissions(PERMISSION_NAMES.MANAGE_ACADEMICS)
-  @ApiOperation({ summary: 'Assign a faculty directly to multiple courses (Admin)' })
-  assignFacultyCourses(@Param('userId') userId: string, @Body() dto: { courseIds: string[] }) {
+  @ApiOperation({
+    summary: 'Assign a faculty directly to multiple courses (Admin)',
+  })
+  assignFacultyCourses(
+    @Param('userId') userId: string,
+    @Body() dto: { courseIds: string[] },
+  ) {
     return this.cohortsService.assignFacultyCourses(userId, dto.courseIds);
   }
 }

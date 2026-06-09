@@ -30,7 +30,11 @@ describe('PrismaModule (Integration)', () => {
         cleanDatabase: jest.fn().mockResolvedValue(undefined),
         user: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn() },
         role: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn() },
-        permission: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn() },
+        permission: {
+          findMany: jest.fn(),
+          findUnique: jest.fn(),
+          create: jest.fn(),
+        },
       })
       .compile();
 
@@ -101,7 +105,9 @@ describe('PrismaService injection into consumer (Integration)', () => {
     const featureService = {
       db: {
         user: {
-          findMany: jest.fn().mockResolvedValue([{ id: '1', email: 'test@school.com' }]),
+          findMany: jest
+            .fn()
+            .mockResolvedValue([{ id: '1', email: 'test@school.com' }]),
         },
       },
       findAllUsers() {

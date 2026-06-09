@@ -34,7 +34,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
   ) {
     this.refreshExpiresDays = parseInt(
       this.config.get<string>('JWT_REFRESH_EXPIRES_DAYS', '7'),
@@ -48,15 +48,18 @@ export class AuthService {
     let password = '';
 
     for (let i = 0; i < length; i++) {
-      password += chars.charAt(
-        Math.floor(Math.random() * chars.length),
-      );
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
     return password;
   }
 
-  async register(dto: RegisterDto, currentUser: AuthUser, deviceInfo?: string, ipAddress?: string) {
+  async register(
+    dto: RegisterDto,
+    currentUser: AuthUser,
+    deviceInfo?: string,
+    ipAddress?: string,
+  ) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -69,16 +72,18 @@ export class AuthService {
     const isSuperAdmin = currentUser.roles.includes(ROLE_NAMES.SUPER_ADMIN);
     if (!isSuperAdmin) {
       // Must be an ADMIN, restrict them from creating SUPER_ADMIN or ADMIN
-      if (roleName === ROLE_NAMES.SUPER_ADMIN || roleName === ROLE_NAMES.ADMIN) {
-        throw new ForbiddenException('Admin cannot create another Admin or Super Admin');
+      if (
+        roleName === ROLE_NAMES.SUPER_ADMIN ||
+        roleName === ROLE_NAMES.ADMIN
+      ) {
+        throw new ForbiddenException(
+          'Admin cannot create another Admin or Super Admin',
+        );
       }
     }
     const generatedPassword = this.generatePassword(8);
 
-    const passwordHash = await bcrypt.hash(
-      generatedPassword,
-      10,
-    );
+    const passwordHash = await bcrypt.hash(generatedPassword, 10);
     const targetRole = await this.prisma.role.findUnique({
       where: { name: roleName },
     });
@@ -89,18 +94,20 @@ export class AuthService {
         passwordHash,
         firstName: dto.firstName,
         lastName: dto.lastName,
-        ...(targetRole
-          ? { roles: { create: { roleId: targetRole.id } } }
-          : {}),
+        ...(targetRole ? { roles: { create: { roleId: targetRole.id } } } : {}),
       },
       include: userWithRolesInclude,
     });
-    await this.mailService.sendMail(dto.email, "Welcome Email", `<div>
+    await this.mailService.sendMail(
+      dto.email,
+      'Welcome Email',
+      `<div>
     <p>Welcome to our platform ${dto.firstName} ${dto.lastName}</p>
     <p>Your email is ${dto.email}</p>
     <p>Your password is ${generatedPassword}</p>
     <p>Your role is ${roleName}</p>
-    </div>`)
+    </div>`,
+    );
     return this.issueTokenPair(user, deviceInfo, ipAddress);
   }
 
@@ -219,7 +226,7 @@ export class AuthService {
         <p>You requested to reset your password. Use the following 6-digit One-Time Password (OTP) to proceed:</p>
         <h2 style="letter-spacing: 2px; color: #3b82f6; font-size: 28px; font-weight: bold;">${otp}</h2>
         <p>This OTP is valid for 10 minutes. If you did not make this request, please ignore this email.</p>
-      </div>`
+      </div>`,
     );
 
     return { message: 'OTP sent successfully to your email' };

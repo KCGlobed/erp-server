@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
@@ -32,7 +40,9 @@ export class PermissionsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a permission (not allowed for system permissions)' })
+  @ApiOperation({
+    summary: 'Delete a permission (not allowed for system permissions)',
+  })
   remove(@Param('id') id: string) {
     return this.permissionsService.remove(id);
   }

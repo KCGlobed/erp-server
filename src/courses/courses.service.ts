@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -15,7 +19,9 @@ export class CoursesService {
       where: { code: dto.code },
     });
     if (existing) {
-      throw new ConflictException(`Course with code ${dto.code} already exists`);
+      throw new ConflictException(
+        `Course with code ${dto.code} already exists`,
+      );
     }
 
     return this.prisma.course.create({
@@ -35,7 +41,10 @@ export class CoursesService {
     }
 
     return this.prisma.course.findMany({
-      where: courseIdFilter !== undefined ? { id: { in: courseIdFilter } } : undefined,
+      where:
+        courseIdFilter !== undefined
+          ? { id: { in: courseIdFilter } }
+          : undefined,
       include: {
         curriculums: {
           include: {
@@ -79,7 +88,9 @@ export class CoursesService {
         where: { code: dto.code },
       });
       if (existing && existing.id !== id) {
-        throw new ConflictException(`Course with code ${dto.code} already exists`);
+        throw new ConflictException(
+          `Course with code ${dto.code} already exists`,
+        );
       }
     }
 
@@ -100,7 +111,9 @@ export class CoursesService {
 
   async createCurriculum(courseId: string, dto: CreateCurriculumDto) {
     // Check if course exists
-    const course = await this.prisma.course.findUnique({ where: { id: courseId } });
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+    });
     if (!course) throw new NotFoundException('Course not found');
 
     // Check version uniqueness for the course
@@ -113,7 +126,9 @@ export class CoursesService {
       },
     });
     if (existing) {
-      throw new ConflictException(`Curriculum version ${dto.version} already exists for this course`);
+      throw new ConflictException(
+        `Curriculum version ${dto.version} already exists for this course`,
+      );
     }
 
     return this.prisma.curriculum.create({
@@ -126,7 +141,9 @@ export class CoursesService {
   }
 
   async findCurriculums(courseId: string) {
-    const course = await this.prisma.course.findUnique({ where: { id: courseId } });
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+    });
     if (!course) throw new NotFoundException('Course not found');
 
     return this.prisma.curriculum.findMany({
@@ -150,7 +167,8 @@ export class CoursesService {
       where: { id: curriculumId },
       include: { course: true },
     });
-    if (!curriculum) throw new NotFoundException('Curriculum version not found');
+    if (!curriculum)
+      throw new NotFoundException('Curriculum version not found');
 
     if (dto.trimester > curriculum.course.numTrimesters) {
       throw new ConflictException(
@@ -206,8 +224,11 @@ export class CoursesService {
   }
 
   async findSubjects(curriculumId: string) {
-    const curriculum = await this.prisma.curriculum.findUnique({ where: { id: curriculumId } });
-    if (!curriculum) throw new NotFoundException('Curriculum version not found');
+    const curriculum = await this.prisma.curriculum.findUnique({
+      where: { id: curriculumId },
+    });
+    if (!curriculum)
+      throw new NotFoundException('Curriculum version not found');
 
     return this.prisma.subject.findMany({
       where: { curriculumId },

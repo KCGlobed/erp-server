@@ -11,9 +11,12 @@ import { MailModule } from 'src/mail/mail.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_ACCESS_SECRET', 'dev-access-secret-change-me'),
+        secret: config.get<string>(
+          'JWT_ACCESS_SECRET',
+          'dev-access-secret-change-me',
+        ),
         signOptions: {
-          expiresIn: config.get('JWT_ACCESS_EXPIRES_IN', '15m') as `${number}m`,
+          expiresIn: config.get('JWT_ACCESS_EXPIRES_IN', '15m'),
         },
       }),
       inject: [ConfigService],
@@ -24,4 +27,4 @@ import { MailModule } from 'src/mail/mail.module';
   providers: [AuthService],
   exports: [AuthService, JwtModule],
 })
-export class AuthModule { }
+export class AuthModule {}

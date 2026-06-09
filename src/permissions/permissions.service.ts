@@ -1,4 +1,9 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
@@ -12,7 +17,9 @@ export class PermissionsService {
 
   async create(dto: CreatePermissionDto) {
     const name = dto.name.toUpperCase().replace(/\s+/g, '_');
-    const existing = await this.prisma.permission.findUnique({ where: { name } });
+    const existing = await this.prisma.permission.findUnique({
+      where: { name },
+    });
     if (existing) throw new ConflictException('Permission already exists');
     return this.prisma.permission.create({
       data: { name, description: dto.description },
@@ -49,8 +56,11 @@ export class PermissionsService {
     if (dto.name) data.name = dto.name.toUpperCase().replace(/\s+/g, '_');
     if (dto.description !== undefined) data.description = dto.description;
     if (data.name) {
-      const conflict = await this.prisma.permission.findUnique({ where: { name: data.name } });
-      if (conflict && conflict.id !== id) throw new ConflictException('Permission name already taken');
+      const conflict = await this.prisma.permission.findUnique({
+        where: { name: data.name },
+      });
+      if (conflict && conflict.id !== id)
+        throw new ConflictException('Permission name already taken');
     }
     return this.prisma.permission.update({ where: { id }, data });
   }

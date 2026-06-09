@@ -30,7 +30,9 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List users (paginated, with visibility constraints)' })
+  @ApiOperation({
+    summary: 'List users (paginated, with visibility constraints)',
+  })
   findAll(@Query() query: PaginationQueryDto, @CurrentUser() user: AuthUser) {
     return this.usersService.findAll(query.page ?? 1, query.limit ?? 20, user);
   }

@@ -52,7 +52,13 @@ export class DashboardService {
 
     return {
       role: 'ADMIN',
-      stats: { totalStudents, totalFaculty, totalCourses, totalCohorts, activeCourses },
+      stats: {
+        totalStudents,
+        totalFaculty,
+        totalCourses,
+        totalCohorts,
+        activeCourses,
+      },
       recentEnrollments: recentEnrollments.map((e) => ({
         id: `${e.userId}-${e.courseId}`,
         studentName: `${e.user.firstName} ${e.user.lastName}`,
@@ -127,7 +133,9 @@ export class DashboardService {
         cohortId: true,
         enrollments: {
           include: {
-            course: { select: { id: true, name: true, code: true, status: true } },
+            course: {
+              select: { id: true, name: true, code: true, status: true },
+            },
           },
         },
       },

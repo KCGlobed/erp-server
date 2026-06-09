@@ -1,5 +1,10 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -25,9 +30,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user (SUPER_ADMIN or ADMIN)' })
   @ApiResponse({ status: 201, type: AuthTokensResponseDto })
   register(
-    @Body() dto: RegisterDto, 
+    @Body() dto: RegisterDto,
     @Req() req: { ip?: string; headers: Record<string, string> },
-    @CurrentUser() user: AuthUser
+    @CurrentUser() user: AuthUser,
   ) {
     return this.authService.register(
       dto,
@@ -41,13 +46,18 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login and receive access + refresh tokens' })
   @ApiResponse({ status: 200, type: AuthTokensResponseDto })
-  login(@Body() dto: LoginDto, @Req() req: { ip?: string; headers: Record<string, string> }) {
+  login(
+    @Body() dto: LoginDto,
+    @Req() req: { ip?: string; headers: Record<string, string> },
+  ) {
     return this.authService.login(dto, req.headers['user-agent'], req.ip);
   }
 
   @Public()
   @Post('refresh')
-  @ApiOperation({ summary: 'Rotate refresh token (RTR) and issue new token pair' })
+  @ApiOperation({
+    summary: 'Rotate refresh token (RTR) and issue new token pair',
+  })
   @ApiResponse({ status: 200, type: AuthTokensResponseDto })
   refresh(
     @Body() dto: RefreshTokenDto,

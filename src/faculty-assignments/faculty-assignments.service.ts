@@ -13,9 +13,7 @@ export class FacultyAssignmentsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private isAdmin(user: AuthUser) {
-    return (
-      user.roles.includes('SUPER_ADMIN') || user.roles.includes('ADMIN')
-    );
+    return user.roles.includes('SUPER_ADMIN') || user.roles.includes('ADMIN');
   }
 
   // ─── Admin: Assign a course to a faculty ─────────────────────────────────
@@ -36,37 +34,51 @@ export class FacultyAssignmentsService {
       throw new ForbiddenException('User does not have the FACULTY role');
     }
 
-    const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
+    const course = await this.prisma.course.findUnique({
+      where: { id: dto.courseId },
+    });
     if (!course) throw new NotFoundException('Course not found');
 
     const existing = await this.prisma.facultyCourseAssignment.findUnique({
-      where: { userId_courseId: { userId: dto.userId, courseId: dto.courseId } },
+      where: {
+        userId_courseId: { userId: dto.userId, courseId: dto.courseId },
+      },
     });
     if (existing) {
-      throw new ConflictException('This course is already assigned to the faculty member');
+      throw new ConflictException(
+        'This course is already assigned to the faculty member',
+      );
     }
 
     await this.prisma.facultyCourseAssignment.create({
       data: { userId: dto.userId, courseId: dto.courseId },
     });
 
-    return { message: `Course "${course.name}" assigned to faculty successfully` };
+    return {
+      message: `Course "${course.name}" assigned to faculty successfully`,
+    };
   }
 
   // ─── Admin: Unassign a course from a faculty ──────────────────────────────
 
   async unassignCourse(dto: AssignCourseDto, currentUser: AuthUser) {
     if (!this.isAdmin(currentUser)) {
-      throw new ForbiddenException('Only admins can unassign courses from faculty');
+      throw new ForbiddenException(
+        'Only admins can unassign courses from faculty',
+      );
     }
 
     const existing = await this.prisma.facultyCourseAssignment.findUnique({
-      where: { userId_courseId: { userId: dto.userId, courseId: dto.courseId } },
+      where: {
+        userId_courseId: { userId: dto.userId, courseId: dto.courseId },
+      },
     });
     if (!existing) throw new NotFoundException('Assignment not found');
 
     await this.prisma.facultyCourseAssignment.delete({
-      where: { userId_courseId: { userId: dto.userId, courseId: dto.courseId } },
+      where: {
+        userId_courseId: { userId: dto.userId, courseId: dto.courseId },
+      },
     });
 
     return { message: 'Course unassigned from faculty successfully' };

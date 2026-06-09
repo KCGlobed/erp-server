@@ -22,9 +22,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         },
       }),
       inject: [ConfigService],
-    })
+    }),
   ],
   providers: [MailService],
-  exports: [MailService]
+  exports: [MailService],
 })
-export class MailModule { }
+export class MailModule {}

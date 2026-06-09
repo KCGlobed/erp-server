@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GcsService } from './gcs.service';
 import { UpdateFacultyProfileDto } from './dto/update-faculty-profile.dto';
@@ -13,7 +17,9 @@ export class FacultyProfileService {
 
   private assertFaculty(user: AuthUser) {
     if (!user.roles.includes('FACULTY')) {
-      throw new ForbiddenException('Only faculty members can access this resource');
+      throw new ForbiddenException(
+        'Only faculty members can access this resource',
+      );
     }
   }
 
@@ -51,7 +57,11 @@ export class FacultyProfileService {
   async uploadPhoto(currentUser: AuthUser, buffer: Buffer, mimetype: string) {
     this.assertFaculty(currentUser);
 
-    const url = await this.gcs.uploadProfilePhoto(currentUser.id, buffer, mimetype);
+    const url = await this.gcs.uploadProfilePhoto(
+      currentUser.id,
+      buffer,
+      mimetype,
+    );
 
     // Save URL to profile
     await this.prisma.facultyProfile.upsert({

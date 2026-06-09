@@ -49,7 +49,11 @@ export class RolesService {
   async update(id: string, dto: UpdateRoleDto) {
     const role = await this.prisma.role.findUnique({ where: { id } });
     if (!role) throw new NotFoundException('Role not found');
-    if (role.name === PROTECTED_ROLE && dto.name && dto.name.toUpperCase() !== PROTECTED_ROLE) {
+    if (
+      role.name === PROTECTED_ROLE &&
+      dto.name &&
+      dto.name.toUpperCase() !== PROTECTED_ROLE
+    ) {
       throw new ForbiddenException('Cannot rename the SUPER_ADMIN role');
     }
     const data: any = {};
@@ -98,7 +102,9 @@ export class RolesService {
   async assignPermission(roleId: string, permissionId: string) {
     const role = await this.prisma.role.findUnique({ where: { id: roleId } });
     if (!role) throw new NotFoundException('Role not found');
-    const permission = await this.prisma.permission.findUnique({ where: { id: permissionId } });
+    const permission = await this.prisma.permission.findUnique({
+      where: { id: permissionId },
+    });
     if (!permission) throw new NotFoundException('Permission not found');
     await this.prisma.rolePermission.upsert({
       where: { roleId_permissionId: { roleId, permissionId } },
@@ -115,7 +121,8 @@ export class RolesService {
     const link = await this.prisma.rolePermission.findUnique({
       where: { roleId_permissionId: { roleId, permissionId } },
     });
-    if (!link) throw new NotFoundException('Permission not assigned to this role');
+    if (!link)
+      throw new NotFoundException('Permission not assigned to this role');
     await this.prisma.rolePermission.delete({
       where: { roleId_permissionId: { roleId, permissionId } },
     });

@@ -1,20 +1,31 @@
-import { Injectable, OnModuleDestroy, OnModuleInit, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+  Logger,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
     const connectionString = process.env.DATABASE_URL;
+    console.log('DATABASE_URL', connectionString);
     if (!connectionString) {
-      throw new Error('DATABASE_URL environment variable is missing. Please set it in your environment (e.g., Google Cloud Run Variables).');
+      throw new Error(
+        'DATABASE_URL environment variable is missing. Please set it in your environment (e.g., Google Cloud Run Variables).',
+      );
     }
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
-    
+
     super({
       adapter,
       log: [
@@ -27,12 +38,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit(): Promise<void> {
     this.logger.log('Connecting to database...');
-    // Add a 5-second timeout to prevent silent hangs in Cloud Run if DB is unreachable
-    const connectPromise = this.$connect();
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Database connection timed out after 5 seconds. Check Cloud SQL connections or DATABASE_URL.')), 5000)
-    );
-    await Promise.race([connectPromise, timeoutPromise]);
+    await this.$connect();
     this.logger.log('Database connected successfully');
 
     // Log slow queries in development

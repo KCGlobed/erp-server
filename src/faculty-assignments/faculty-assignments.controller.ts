@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FacultyAssignmentsService } from './faculty-assignments.service';
 import { AssignCourseDto } from './dto/assign-course.dto';
@@ -33,7 +26,9 @@ export class FacultyAssignmentsController {
   }
 
   @Get(':facultyId/courses')
-  @ApiOperation({ summary: 'Get all courses assigned to a faculty user (Admin)' })
+  @ApiOperation({
+    summary: 'Get all courses assigned to a faculty user (Admin)',
+  })
   getFacultyCourses(
     @Param('facultyId') facultyId: string,
     @CurrentUser() user: AuthUser,

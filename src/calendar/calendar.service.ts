@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
@@ -17,7 +21,9 @@ export class CalendarService {
       where: { name: dto.name },
     });
     if (existing) {
-      throw new ConflictException(`Session with name ${dto.name} already exists`);
+      throw new ConflictException(
+        `Session with name ${dto.name} already exists`,
+      );
     }
 
     if (dto.isActive) {
@@ -229,10 +235,7 @@ export class CalendarService {
             OR: [
               // Global
               {
-                AND: [
-                  { cohorts: { none: {} } },
-                  { courses: { none: {} } },
-                ],
+                AND: [{ cohorts: { none: {} } }, { courses: { none: {} } }],
               },
               // Cohort specific
               { cohorts: { some: { cohortId: { in: targetCohortIds } } } },
@@ -254,14 +257,20 @@ export class CalendarService {
 
   async createExam(dto: CreateExamScheduleDto) {
     // Validate subject & cohort
-    const subject = await this.prisma.subject.findUnique({ where: { id: dto.subjectId } });
+    const subject = await this.prisma.subject.findUnique({
+      where: { id: dto.subjectId },
+    });
     if (!subject) throw new NotFoundException('Subject not found');
 
-    const cohort = await this.prisma.cohort.findUnique({ where: { id: dto.cohortId } });
+    const cohort = await this.prisma.cohort.findUnique({
+      where: { id: dto.cohortId },
+    });
     if (!cohort) throw new NotFoundException('Cohort not found');
 
     if (dto.invigilatorId) {
-      const user = await this.prisma.user.findUnique({ where: { id: dto.invigilatorId } });
+      const user = await this.prisma.user.findUnique({
+        where: { id: dto.invigilatorId },
+      });
       if (!user) throw new NotFoundException('Invigilator user not found');
     }
 
@@ -326,10 +335,11 @@ export class CalendarService {
 
     if (isFaculty) {
       // Faculty see exams for their assigned cohorts or where they are the invigilator
-      const cohortAssignments = await this.prisma.facultyCohortAssignment.findMany({
-        where: { userId: currentUser.id },
-        select: { cohortId: true },
-      });
+      const cohortAssignments =
+        await this.prisma.facultyCohortAssignment.findMany({
+          where: { userId: currentUser.id },
+          select: { cohortId: true },
+        });
       const cohortIds = cohortAssignments.map((a) => a.cohortId);
 
       return this.prisma.examSchedule.findMany({

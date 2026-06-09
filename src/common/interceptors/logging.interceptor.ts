@@ -1,4 +1,9 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LoggerService } from '../../logger/logger.service';
@@ -14,7 +19,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const { method, url, ip } = request;
     const userAgent = request.headers['user-agent'] || '';
-    
+
     // In actual auth implementations, request.user will be populated by JWT passport strategy
     const userId = request.user?.id || null;
     const now = Date.now();
@@ -23,7 +28,7 @@ export class LoggingInterceptor implements NestInterceptor {
       tap(() => {
         const statusCode = response.statusCode;
         const delay = Date.now() - now;
-        
+
         this.loggerService.success(
           `${method} ${url} ${statusCode} - ${delay}ms`,
           'HTTP-Request',

@@ -61,7 +61,9 @@ export class UsersService {
           },
         };
       } else {
-        throw new ForbiddenException('You do not have permission to view users');
+        throw new ForbiddenException(
+          'You do not have permission to view users',
+        );
       }
     }
 
@@ -115,7 +117,9 @@ export class UsersService {
         const targetRole = await tx.role.findUnique({ where: { name: role } });
         if (!targetRole) throw new NotFoundException(`Role ${role} not found`);
         await tx.userRole.deleteMany({ where: { userId: id } });
-        await tx.userRole.create({ data: { userId: id, roleId: targetRole.id } });
+        await tx.userRole.create({
+          data: { userId: id, roleId: targetRole.id },
+        });
       }
       const user = await tx.user.update({
         where: { id },
@@ -147,18 +151,24 @@ export class UsersService {
       where: { userId_roleId: { userId, roleId } },
     });
     if (!link) throw new NotFoundException('User does not have this role');
-    await this.prisma.userRole.delete({ where: { userId_roleId: { userId, roleId } } });
+    await this.prisma.userRole.delete({
+      where: { userId_roleId: { userId, roleId } },
+    });
     return { message: 'Role removed from user' };
   }
 
   async remove(id: string, currentUser: AuthUser) {
     this.assertCanModifyUser(id, currentUser);
-    if (id === currentUser.id) throw new ForbiddenException('Cannot delete yourself');
+    if (id === currentUser.id)
+      throw new ForbiddenException('Cannot delete yourself');
     await this.ensureUserExists(id);
     return this.prisma.$transaction(async (tx) => {
       await tx.userRole.deleteMany({ where: { userId: id } });
       await tx.userPermission.deleteMany({ where: { userId: id } });
-      await tx.systemLog.updateMany({ where: { userId: id }, data: { userId: null } });
+      await tx.systemLog.updateMany({
+        where: { userId: id },
+        data: { userId: null },
+      });
       await tx.refreshToken.deleteMany({ where: { userId: id } });
       const deleted = await tx.user.delete({ where: { id } });
       return { message: 'User deleted successfully', id: deleted.id };
@@ -183,15 +193,24 @@ export class UsersService {
     }));
   }
 
-  async grantUserPermission(userId: string, permissionId: string, grantedBy: string) {
+  async grantUserPermission(
+    userId: string,
+    permissionId: string,
+    grantedBy: string,
+  ) {
     await this.ensureUserExists(userId);
-    const perm = await this.prisma.permission.findUnique({ where: { id: permissionId } });
+    const perm = await this.prisma.permission.findUnique({
+      where: { id: permissionId },
+    });
     if (!perm) throw new NotFoundException('Permission not found');
     const existing = await this.prisma.userPermission.findUnique({
       where: { userId_permissionId: { userId, permissionId } },
     });
-    if (existing) throw new ConflictException('User already has this permission directly');
-    await this.prisma.userPermission.create({ data: { userId, permissionId, grantedBy } });
+    if (existing)
+      throw new ConflictException('User already has this permission directly');
+    await this.prisma.userPermission.create({
+      data: { userId, permissionId, grantedBy },
+    });
     return { message: 'Permission granted', permissionId };
   }
 
@@ -200,7 +219,8 @@ export class UsersService {
     const link = await this.prisma.userPermission.findUnique({
       where: { userId_permissionId: { userId, permissionId } },
     });
-    if (!link) throw new NotFoundException('User does not have this direct permission');
+    if (!link)
+      throw new NotFoundException('User does not have this direct permission');
     await this.prisma.userPermission.delete({
       where: { userId_permissionId: { userId, permissionId } },
     });
@@ -214,13 +234,19 @@ export class UsersService {
 
   private assertCanAccessUser(targetId: string, currentUser: AuthUser) {
     const isSelf = currentUser.id === targetId;
-    const canManage = currentUser.permissions.includes(PERMISSION_NAMES.MANAGE_USERS);
-    if (!canManage && !isSelf) throw new ForbiddenException('Cannot access this user');
+    const canManage = currentUser.permissions.includes(
+      PERMISSION_NAMES.MANAGE_USERS,
+    );
+    if (!canManage && !isSelf)
+      throw new ForbiddenException('Cannot access this user');
   }
 
   private assertCanModifyUser(targetId: string, currentUser: AuthUser) {
     const isSelf = currentUser.id === targetId;
-    const canManage = currentUser.permissions.includes(PERMISSION_NAMES.MANAGE_USERS);
-    if (!canManage && !isSelf) throw new ForbiddenException('Cannot update this user');
+    const canManage = currentUser.permissions.includes(
+      PERMISSION_NAMES.MANAGE_USERS,
+    );
+    if (!canManage && !isSelf)
+      throw new ForbiddenException('Cannot update this user');
   }
 }

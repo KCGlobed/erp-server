@@ -6,19 +6,34 @@ import { LogLevel } from '@prisma/client';
 export class LoggerService {
   private readonly logger = new Logger(LoggerService.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async log(message: string, context = 'Application', userId?: string, metadata?: any) {
+  async log(
+    message: string,
+    context = 'Application',
+    userId?: string,
+    metadata?: any,
+  ) {
     this.logger.log(`[${context}] ${message}`);
     await this.saveLog(LogLevel.INFO, message, context, userId, metadata);
   }
 
-  async warn(message: string, context = 'Application', userId?: string, metadata?: any) {
+  async warn(
+    message: string,
+    context = 'Application',
+    userId?: string,
+    metadata?: any,
+  ) {
     this.logger.warn(`[${context}] ${message}`);
     await this.saveLog(LogLevel.WARN, message, context, userId, metadata);
   }
 
-  async error(message: string, stackOrContext = 'Application', userId?: string, metadata?: any) {
+  async error(
+    message: string,
+    stackOrContext = 'Application',
+    userId?: string,
+    metadata?: any,
+  ) {
     this.logger.error(`[${stackOrContext}] ${message}`);
     await this.saveLog(LogLevel.ERROR, message, stackOrContext, userId, {
       ...metadata,
@@ -26,7 +41,12 @@ export class LoggerService {
     });
   }
 
-  async success(message: string, context = 'Application', userId?: string, metadata?: any) {
+  async success(
+    message: string,
+    context = 'Application',
+    userId?: string,
+    metadata?: any,
+  ) {
     this.logger.log(`✨ [${context}] [SUCCESS] ${message}`);
     // Persist as INFO with SUCCESS metadata or custom tag since DB LogLevel has no success type
     await this.saveLog(LogLevel.INFO, message, context, userId, {

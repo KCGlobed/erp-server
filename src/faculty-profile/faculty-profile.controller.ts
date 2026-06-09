@@ -9,7 +9,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FacultyProfileService } from './faculty-profile.service';
 import { UpdateFacultyProfileDto } from './dto/update-faculty-profile.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -47,7 +52,9 @@ export class FacultyProfileController {
     if (!file) throw new BadRequestException('No file provided');
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.mimetype)) {
-      throw new BadRequestException('Only JPEG, PNG, and WebP images are allowed');
+      throw new BadRequestException(
+        'Only JPEG, PNG, and WebP images are allowed',
+      );
     }
     return this.service.uploadPhoto(user, file.buffer, file.mimetype);
   }

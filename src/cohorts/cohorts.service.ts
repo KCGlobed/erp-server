@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCohortDto } from './dto/create-cohort.dto';
 import { UpdateCohortDto } from './dto/update-cohort.dto';
@@ -13,7 +18,9 @@ export class CohortsService {
       where: { name: dto.name },
     });
     if (existing) {
-      throw new ConflictException(`Cohort with name ${dto.name} already exists`);
+      throw new ConflictException(
+        `Cohort with name ${dto.name} already exists`,
+      );
     }
 
     return this.prisma.cohort.create({
@@ -89,7 +96,9 @@ export class CohortsService {
         where: { name: dto.name },
       });
       if (existing && existing.id !== id) {
-        throw new ConflictException(`Cohort with name ${dto.name} already exists`);
+        throw new ConflictException(
+          `Cohort with name ${dto.name} already exists`,
+        );
       }
     }
 
@@ -112,16 +121,21 @@ export class CohortsService {
     await this.findOne(cohortId);
 
     // Validate course & curriculum exist
-    const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
+    const course = await this.prisma.course.findUnique({
+      where: { id: dto.courseId },
+    });
     if (!course) throw new NotFoundException('Course not found');
 
     const curriculum = await this.prisma.curriculum.findUnique({
       where: { id: dto.curriculumId },
     });
-    if (!curriculum) throw new NotFoundException('Curriculum version not found');
+    if (!curriculum)
+      throw new NotFoundException('Curriculum version not found');
 
     if (curriculum.courseId !== dto.courseId) {
-      throw new BadRequestException('This curriculum version does not belong to the selected course');
+      throw new BadRequestException(
+        'This curriculum version does not belong to the selected course',
+      );
     }
 
     return this.prisma.cohortCourse.upsert({
@@ -162,12 +176,21 @@ export class CohortsService {
         });
 
         if (!user) {
-          throw new NotFoundException(`Student user with ID ${studentId} not found`);
+          throw new NotFoundException(
+            `Student user with ID ${studentId} not found`,
+          );
         }
 
-        const isStudent = user.roles.some((r) => r.role.name === 'STUDENT' || r.role.name === 'SUPER_ADMIN' || r.role.name === 'ADMIN');
+        const isStudent = user.roles.some(
+          (r) =>
+            r.role.name === 'STUDENT' ||
+            r.role.name === 'SUPER_ADMIN' ||
+            r.role.name === 'ADMIN',
+        );
         if (!isStudent) {
-          throw new BadRequestException(`User ${user.email} does not have the STUDENT role`);
+          throw new BadRequestException(
+            `User ${user.email} does not have the STUDENT role`,
+          );
         }
 
         // Set cohort
@@ -191,7 +214,9 @@ export class CohortsService {
         }
       }
 
-      return { message: `${studentIds.length} students assigned to cohort and auto-enrolled in courses` };
+      return {
+        message: `${studentIds.length} students assigned to cohort and auto-enrolled in courses`,
+      };
     });
   }
 
@@ -203,13 +228,20 @@ export class CohortsService {
     });
     if (!user) throw new NotFoundException('Student user not found');
 
-    const isStudent = user.roles.some((r) => r.role.name === 'STUDENT' || r.role.name === 'SUPER_ADMIN' || r.role.name === 'ADMIN');
-    if (!isStudent) throw new BadRequestException('User does not have the STUDENT role');
+    const isStudent = user.roles.some(
+      (r) =>
+        r.role.name === 'STUDENT' ||
+        r.role.name === 'SUPER_ADMIN' ||
+        r.role.name === 'ADMIN',
+    );
+    if (!isStudent)
+      throw new BadRequestException('User does not have the STUDENT role');
 
     return this.prisma.$transaction(async (tx) => {
       for (const courseId of courseIds) {
         const course = await tx.course.findUnique({ where: { id: courseId } });
-        if (!course) throw new NotFoundException(`Course with ID ${courseId} not found`);
+        if (!course)
+          throw new NotFoundException(`Course with ID ${courseId} not found`);
 
         await tx.courseEnrollment.upsert({
           where: {
@@ -240,12 +272,21 @@ export class CohortsService {
         });
 
         if (!user) {
-          throw new NotFoundException(`Faculty user with ID ${facultyId} not found`);
+          throw new NotFoundException(
+            `Faculty user with ID ${facultyId} not found`,
+          );
         }
 
-        const isFaculty = user.roles.some((r) => r.role.name === 'FACULTY' || r.role.name === 'SUPER_ADMIN' || r.role.name === 'ADMIN');
+        const isFaculty = user.roles.some(
+          (r) =>
+            r.role.name === 'FACULTY' ||
+            r.role.name === 'SUPER_ADMIN' ||
+            r.role.name === 'ADMIN',
+        );
         if (!isFaculty) {
-          throw new BadRequestException(`User ${user.email} does not have the FACULTY role`);
+          throw new BadRequestException(
+            `User ${user.email} does not have the FACULTY role`,
+          );
         }
 
         await tx.facultyCohortAssignment.upsert({
@@ -270,13 +311,20 @@ export class CohortsService {
     });
     if (!user) throw new NotFoundException('Faculty user not found');
 
-    const isFaculty = user.roles.some((r) => r.role.name === 'FACULTY' || r.role.name === 'SUPER_ADMIN' || r.role.name === 'ADMIN');
-    if (!isFaculty) throw new BadRequestException('User does not have the FACULTY role');
+    const isFaculty = user.roles.some(
+      (r) =>
+        r.role.name === 'FACULTY' ||
+        r.role.name === 'SUPER_ADMIN' ||
+        r.role.name === 'ADMIN',
+    );
+    if (!isFaculty)
+      throw new BadRequestException('User does not have the FACULTY role');
 
     return this.prisma.$transaction(async (tx) => {
       for (const courseId of courseIds) {
         const course = await tx.course.findUnique({ where: { id: courseId } });
-        if (!course) throw new NotFoundException(`Course with ID ${courseId} not found`);
+        if (!course)
+          throw new NotFoundException(`Course with ID ${courseId} not found`);
 
         await tx.facultyCourseAssignment.upsert({
           where: {

@@ -1,8 +1,17 @@
-import { User, Role, Permission, UserRole, RolePermission, UserPermission } from '@prisma/client';
+import {
+  User,
+  Role,
+  Permission,
+  UserRole,
+  RolePermission,
+  UserPermission,
+} from '@prisma/client';
 
 export type UserWithRoles = User & {
   roles: (UserRole & {
-    role: Role & { permissions: (RolePermission & { permission: Permission })[] };
+    role: Role & {
+      permissions: (RolePermission & { permission: Permission })[];
+    };
   })[];
   directPermissions?: (UserPermission & { permission: Permission })[];
 };
@@ -15,7 +24,7 @@ export function extractRolesAndPermissions(user: UserWithRoles) {
   const directPerms = user.directPermissions
     ? user.directPermissions.map((dp) => dp.permission.name)
     : [];
-  
+
   const permissions = [...new Set([...rolePerms, ...directPerms])];
   return { roles, permissions };
 }

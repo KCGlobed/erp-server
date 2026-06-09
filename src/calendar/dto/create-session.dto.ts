@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsDate, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsDate,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateSessionDto {

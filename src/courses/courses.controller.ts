@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -69,7 +77,10 @@ export class CoursesController {
   @Post('curriculums/:curriculumId/subjects')
   @RequirePermissions(PERMISSION_NAMES.MANAGE_ACADEMICS)
   @ApiOperation({ summary: 'Create a subject under a curriculum version' })
-  createSubject(@Param('curriculumId') curriculumId: string, @Body() dto: CreateSubjectDto) {
+  createSubject(
+    @Param('curriculumId') curriculumId: string,
+    @Body() dto: CreateSubjectDto,
+  ) {
     return this.coursesService.createSubject(curriculumId, dto);
   }
 

@@ -41,7 +41,9 @@ export class CalendarController {
   }
 
   @Get('holidays')
-  @ApiOperation({ summary: 'List holidays (filtered by visibility for student/faculty)' })
+  @ApiOperation({
+    summary: 'List holidays (filtered by visibility for student/faculty)',
+  })
   findHolidays(@CurrentUser() user: AuthUser) {
     return this.calendarService.findHolidays(user);
   }
@@ -56,7 +58,9 @@ export class CalendarController {
   }
 
   @Get('events')
-  @ApiOperation({ summary: 'List events (filtered by visibility for student/faculty)' })
+  @ApiOperation({
+    summary: 'List events (filtered by visibility for student/faculty)',
+  })
   findEvents(@CurrentUser() user: AuthUser) {
     return this.calendarService.findEvents(user);
   }

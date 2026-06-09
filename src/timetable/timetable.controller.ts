@@ -28,7 +28,9 @@ export class TimetableController {
   }
 
   @Get('personalized')
-  @ApiOperation({ summary: 'Get consolidated personalized calendar matching the user context' })
+  @ApiOperation({
+    summary: 'Get consolidated personalized calendar matching the user context',
+  })
   getPersonalizedCalendar(@CurrentUser() user: AuthUser) {
     return this.timetableService.getPersonalizedCalendar(user);
   }
