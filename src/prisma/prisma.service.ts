@@ -23,7 +23,10 @@ export class PrismaService
         'DATABASE_URL environment variable is missing. Please set it in your environment (e.g., Google Cloud Run Variables).',
       );
     }
-    const pool = new Pool({ connectionString });
+    const pool = new Pool({ 
+      connectionString,
+      ssl: connectionString.includes('localhost') ? undefined : { rejectUnauthorized: false }
+    });
     const adapter = new PrismaPg(pool);
 
     super({

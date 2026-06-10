@@ -104,4 +104,24 @@ export class AttendanceService {
       classAttendanceId: result.id,
     };
   }
+
+  async getStudentAttendance(studentId: string) {
+    const records = await this.prisma.studentAttendanceRecord.findMany({
+      where: { studentId },
+      include: {
+        classAttendance: {
+          include: {
+            classSchedule: true,
+          },
+        },
+      },
+    });
+
+    return records.map((r) => ({
+      status: r.status,
+      date: r.classAttendance.date,
+      courseId: r.classAttendance.classSchedule.courseId,
+      topic: r.classAttendance.classSchedule.topic,
+    }));
+  }
 }

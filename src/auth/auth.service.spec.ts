@@ -59,12 +59,15 @@ describe('AuthService', () => {
     it('throws ConflictException when email exists', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: '1' });
       await expect(
-        service.register({
-          email: 'a@b.com',
-          password: 'password1',
-          firstName: 'A',
-          lastName: 'B',
-        }),
+        service.register(
+          {
+            email: 'a@b.com',
+            firstName: 'A',
+            lastName: 'B',
+            role: 'STUDENT',
+          },
+          { id: 'admin', email: 'admin@b.com', roles: ['SUPER_ADMIN'], permissions: [] }
+        ),
       ).rejects.toBeInstanceOf(ConflictException);
     });
 
@@ -79,12 +82,15 @@ describe('AuthService', () => {
       });
       mockPrisma.refreshToken.create.mockResolvedValue({});
 
-      const result = await service.register({
-        email: 'a@b.com',
-        password: 'password1',
-        firstName: 'A',
-        lastName: 'B',
-      });
+      const result = await service.register(
+        {
+          email: 'a@b.com',
+          firstName: 'A',
+          lastName: 'B',
+          role: 'STUDENT',
+        },
+        { id: 'admin', email: 'admin@b.com', roles: ['SUPER_ADMIN'], permissions: [] }
+      );
 
       expect(result.accessToken).toBe('access-token');
       expect(result.refreshToken).toBeDefined();
@@ -96,7 +102,7 @@ describe('AuthService', () => {
     it('throws UnauthorizedException for invalid credentials', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       await expect(
-        service.login({ email: 'a@b.com', password: 'wrong' }),
+        service.login({ email: 'a@b.com', password: 'wrong' }, 'test-device', '127.0.0.1'),
       ).rejects.toBeInstanceOf(UnauthorizedException);
     });
 
@@ -110,10 +116,14 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       mockPrisma.refreshToken.create.mockResolvedValue({});
 
-      const result = await service.login({
-        email: 'a@b.com',
-        password: 'password1',
-      });
+      const result = await service.login(
+        {
+          email: 'a@b.com',
+          password: 'password1',
+        },
+        'test-device',
+        '127.0.0.1'
+      );
 
       expect(result.accessToken).toBe('access-token');
     });

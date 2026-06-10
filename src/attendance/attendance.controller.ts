@@ -26,4 +26,10 @@ export class AttendanceController {
   ) {
     return this.attendanceService.markAttendance(classScheduleId, dto, user);
   }
+
+  @Get('student/:studentId')
+  @ApiOperation({ summary: 'Get attendance history for a specific student' })
+  getStudentAttendance(@Param('studentId') studentId: string) {
+    return this.attendanceService.getStudentAttendance(studentId);
+  }
 }

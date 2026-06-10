@@ -30,7 +30,10 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 };
 
 const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
+const pool = new Pool({ 
+  connectionString,
+  ssl: connectionString?.includes('localhost') ? undefined : { rejectUnauthorized: false }
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
