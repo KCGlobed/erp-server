@@ -23,6 +23,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { FacultyProfileModule } from './faculty-profile/faculty-profile.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { StudentProfileModule } from './student-profile/student-profile.module';
+import { ExperienceModule } from './experience/experience.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { StudentProfileModule } from './student-profile/student-profile.module';
     FacultyProfileModule,
     AttendanceModule,
     StudentProfileModule,
+    ExperienceModule,
   ],
   controllers: [AppController],
   providers: [

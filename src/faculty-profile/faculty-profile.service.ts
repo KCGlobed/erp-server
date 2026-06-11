@@ -27,7 +27,10 @@ export class FacultyProfileService {
     this.assertFaculty(currentUser);
     const user = await this.prisma.user.findUnique({
       where: { id: currentUser.id },
-      include: { facultyProfile: true },
+      include: {
+        facultyProfile: true,
+        experiences: { orderBy: { fromDate: 'desc' } },
+      },
     });
 
     if (!user) throw new NotFoundException('User not found');
@@ -39,6 +42,7 @@ export class FacultyProfileService {
       email: user.email,
       status: user.status,
       profile: user.facultyProfile,
+      experiences: user.experiences,
     };
   }
 

@@ -31,6 +31,7 @@ model User {
   studentProfile     StudentProfile?
   refreshTokens      RefreshToken[]
   logs               SystemLog[]
+  experiences        Experience[]
 }
 
 model FacultyProfile {
@@ -48,13 +49,32 @@ model FacultyProfile {
   permanentAddress       String?
   experienceYears        Int?
   experienceDescription  String?
+  isFresher              Boolean   @default(false)
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
-  dateOfBirth            String?
-  dateOfJoining          String?
+  dateOfBirth            DateTime?
+  dateOfJoining          DateTime?
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("faculty_profiles")
+}
+
+model Experience {
+  id               String    @id @default(cuid())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organizationName String
+  designation      String
+  functionalArea   String
+  fromDate         DateTime
+  toDate           DateTime?           // null = currently working here
+  isCurrentRole    Boolean   @default(false)
+
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("experiences")
 }
 
 model StudentProfile {
@@ -70,7 +90,7 @@ model StudentProfile {
   specifyRelationship        String?
   parentGuardianPhoneNumber  String?
   parentGuardianEmailId      String?
-  dateOfBirth                String?
+  dateOfBirth                DateTime?
   gender                     Gender?
   nationality                String?
   state                      String?
@@ -100,6 +120,7 @@ model StudentProfile {
   // Academic — Higher Qualification
   hasHigherQualification     Boolean  @default(false)
   higherQualification        String?
+  isFresher                  Boolean  @default(false)
 
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt

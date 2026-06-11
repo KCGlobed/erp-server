@@ -35,7 +35,10 @@ export class StudentProfileService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: currentUser.id },
-      include: { studentProfile: true },
+      include: {
+        studentProfile: true,
+        experiences: { orderBy: { fromDate: 'desc' } },
+      },
     });
 
     if (!user) throw new NotFoundException('User not found');
@@ -47,6 +50,7 @@ export class StudentProfileService {
       email: user.email,
       status: user.status,
       profile: user.studentProfile,
+      experiences: user.experiences,
     };
   }
 
@@ -71,7 +75,10 @@ export class StudentProfileService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: studentId },
-      include: { studentProfile: true },
+      include: {
+        studentProfile: true,
+        experiences: { orderBy: { fromDate: 'desc' } },
+      },
     });
 
     if (!user) throw new NotFoundException('Student not found');
@@ -83,6 +90,7 @@ export class StudentProfileService {
       email: user.email,
       status: user.status,
       profile: user.studentProfile,
+      experiences: user.experiences,
     };
   }
 

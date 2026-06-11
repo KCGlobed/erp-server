@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 import { Gender } from '@prisma/client';
 import { IsFlexibleDate } from '../../common/decorators/is-flexible-date.decorator';
-import { parseFlexibleDate } from '../../common/utils/date.util';
+import { parseDateToDateTime } from '../../common/utils/date.util';
 
 export class UpdateStudentProfileDto {
   // ── Personal Information ──────────────────────────────────────
@@ -63,13 +63,13 @@ export class UpdateStudentProfileDto {
 
   @ApiPropertyOptional({
     description:
-      'Date of birth. Accepts: DDMMYY, MMDDYY, YYMMDD, DDMMYYYY, MMDDYYYY, YYYYMMDD, DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD. Stored as YYYY-MM-DD.',
+      'Date of birth. Accepts: DDMMYY, MMDDYY, YYMMDD, DDMMYYYY, MMDDYYYY, YYYYMMDD, DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD. Stored as DateTime (midnight UTC).',
     example: '15011995',
   })
   @IsOptional()
   @IsFlexibleDate()
   @Transform(({ value }) =>
-    value ? parseFlexibleDate(value) ?? value : undefined,
+    value ? parseDateToDateTime(value) ?? value : undefined,
   )
   dateOfBirth?: string;
 
@@ -200,4 +200,11 @@ export class UpdateStudentProfileDto {
   @IsString()
   @MaxLength(200)
   higherQualification?: string;
+
+  @ApiPropertyOptional({
+    description: 'Set true if the student has no prior work/internship experience.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isFresher?: boolean;
 }

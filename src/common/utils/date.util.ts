@@ -111,3 +111,22 @@ export function parseFlexibleDate(input: string): string | null {
 export function isValidFlexibleDate(input: string): boolean {
   return parseFlexibleDate(input) !== null;
 }
+
+/**
+ * Parses a flexible date input and returns a full ISO 8601 DateTime string
+ * anchored at midnight UTC (e.g. "1990-01-15T00:00:00.000Z").
+ *
+ * This is the format expected by Prisma DateTime fields when passed as a string.
+ * Returns null if the input cannot be parsed.
+ *
+ * @example
+ *   parseDateToDateTime("15011990") // "1990-01-15T00:00:00.000Z"
+ *   parseDateToDateTime("1990-01-15") // "1990-01-15T00:00:00.000Z"
+ *   parseDateToDateTime("15/01/1990") // "1990-01-15T00:00:00.000Z"
+ */
+export function parseDateToDateTime(input: string): string | null {
+  const date = parseFlexibleDate(input);
+  if (!date) return null;
+  return `${date}T00:00:00.000Z`;
+}
+
