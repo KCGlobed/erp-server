@@ -8,28 +8,29 @@ datasource db {
 }
 
 model User {
-  id                String                    @id @default(cuid())
-  email             String                    @unique
-  passwordHash      String
-  firstName         String
-  lastName          String
-  status            UserStatus                @default(ACTIVE)
-  createdAt         DateTime                  @default(now())
-  updatedAt         DateTime                  @updatedAt
-  cohortId          String?
-  classesTaught     ClassSchedule[]
-  enrollments       CourseEnrollment[]
-  invigilations     ExamSchedule[]
-  facultyAssignments FacultyCourseAssignment[]
-  facultyCohorts    FacultyCohortAssignment[]
+  id                 String                    @id @default(cuid())
+  email              String                    @unique
+  passwordHash       String
+  firstName          String
+  lastName           String
+  status             UserStatus                @default(ACTIVE)
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  cohortId           String?
   classAttendances   ClassAttendance[]
+  classesTaught      ClassSchedule[]
+  enrollments        CourseEnrollment[]
+  invigilations      ExamSchedule[]
+  facultyCohorts     FacultyCohortAssignment[]
+  facultyAssignments FacultyCourseAssignment[]
   attendanceRecords  StudentAttendanceRecord[]
-  cohort            Cohort?                   @relation(fields: [cohortId], references: [id])
-  directPermissions UserPermission[]
-  roles             UserRole[]
-  facultyProfile    FacultyProfile?
-  refreshTokens     RefreshToken[]
-  logs              SystemLog[]
+  cohort             Cohort?                   @relation(fields: [cohortId], references: [id])
+  directPermissions  UserPermission[]
+  roles              UserRole[]
+  facultyProfile     FacultyProfile?
+  studentProfile     StudentProfile?
+  refreshTokens      RefreshToken[]
+  logs               SystemLog[]
 }
 
 model FacultyProfile {
@@ -54,6 +55,58 @@ model FacultyProfile {
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("faculty_profiles")
+}
+
+model StudentProfile {
+  id                         String    @id @default(cuid())
+  userId                     String    @unique
+
+  // Personal Information
+  mobileNumber               String?
+  emergencyContactName       String?
+  emergencyContactNumber     String?
+  parentGuardianName         String?
+  relationship               String?
+  specifyRelationship        String?
+  parentGuardianPhoneNumber  String?
+  parentGuardianEmailId      String?
+  dateOfBirth                DateTime?
+  gender                     Gender?
+  nationality                String?
+  state                      String?
+  city                       String?
+  pinCode                    String?
+  completeAddress            String?
+
+  // Academic — Class 10
+  class10YearOfPassing       String?
+  class10GradeType           String?
+  class10Score               String?
+  class10MediumOfInstruction String?
+
+  // Academic — Class 12
+  class12YearOfPassing       String?
+  class12GradeType           String?
+  class12Score               String?
+  class12MediumOfInstruction String?
+
+  // Academic — Undergraduate
+  ugStatus                   String?
+  ugGradeType                String?
+  ugScore                    String?
+  ugInstitutionName          String?
+  ugMediumOfInstruction      String?
+
+  // Academic — Higher Qualification
+  hasHigherQualification     Boolean  @default(false)
+  higherQualification        String?
+
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("student_profiles")
 }
 
 model Role {
@@ -383,23 +436,48 @@ model ExamSchedule {
 }
 
 model ClassSchedule {
-  id        String   @id @default(cuid())
-  date      DateTime
-  startTime DateTime
-  endTime   DateTime
-  courseId  String
-  cohortId  String
-  subjectId String
-  facultyId String
-  room      String
-  topic     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cohort    Cohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  faculty   User     @relation(fields: [facultyId], references: [id])
-  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  id              String           @id @default(cuid())
+  date            DateTime
+  startTime       DateTime
+  endTime         DateTime
+  courseId        String
+  cohortId        String
+  subjectId       String
+  facultyId       String
+  room            String
+  topic           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   classAttendance ClassAttendance?
+  cohort          Cohort           @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  course          Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  faculty         User             @relation(fields: [facultyId], references: [id])
+  subject         Subject          @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+}
+
+model ClassAttendance {
+  id              String                    @id @default(cuid())
+  classScheduleId String                    @unique
+  date            DateTime
+  facultyId       String
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  classSchedule   ClassSchedule             @relation(fields: [classScheduleId], references: [id], onDelete: Cascade)
+  faculty         User                      @relation(fields: [facultyId], references: [id])
+  records         StudentAttendanceRecord[]
+}
+
+model StudentAttendanceRecord {
+  id                String           @id @default(cuid())
+  classAttendanceId String
+  studentId         String
+  status            AttendanceStatus
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  classAttendance   ClassAttendance  @relation(fields: [classAttendanceId], references: [id], onDelete: Cascade)
+  student           User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classAttendanceId, studentId])
 }
 
 enum Gender {
@@ -480,29 +558,4 @@ enum AssessmentType {
 enum AttendanceStatus {
   PRESENT
   ABSENT
-}
-
-model ClassAttendance {
-  id              String                    @id @default(cuid())
-  classScheduleId String                    @unique
-  date            DateTime
-  facultyId       String
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
-  classSchedule   ClassSchedule             @relation(fields: [classScheduleId], references: [id], onDelete: Cascade)
-  faculty         User                      @relation(fields: [facultyId], references: [id])
-  records         StudentAttendanceRecord[]
-}
-
-model StudentAttendanceRecord {
-  id                String           @id @default(cuid())
-  classAttendanceId String
-  studentId         String
-  status            AttendanceStatus
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  classAttendance   ClassAttendance  @relation(fields: [classAttendanceId], references: [id], onDelete: Cascade)
-  student           User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([classAttendanceId, studentId])
 }

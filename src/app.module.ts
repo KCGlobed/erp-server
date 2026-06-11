@@ -22,6 +22,7 @@ import { FacultyAssignmentsModule } from './faculty-assignments/faculty-assignme
 import { DashboardModule } from './dashboard/dashboard.module';
 import { FacultyProfileModule } from './faculty-profile/faculty-profile.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import { StudentProfileModule } from './student-profile/student-profile.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AttendanceModule } from './attendance/attendance.module';
     DashboardModule,
     FacultyProfileModule,
     AttendanceModule,
+    StudentProfileModule,
   ],
   controllers: [AppController],
   providers: [
