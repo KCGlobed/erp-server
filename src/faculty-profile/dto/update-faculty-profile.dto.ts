@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
-  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -11,6 +11,8 @@ import {
   Min,
 } from 'class-validator';
 import { Gender } from '@prisma/client';
+import { IsFlexibleDate } from '../../common/decorators/is-flexible-date.decorator';
+import { parseFlexibleDate } from '../../common/utils/date.util';
 
 export class UpdateFacultyProfileDto {
   @ApiPropertyOptional()
@@ -85,13 +87,27 @@ export class UpdateFacultyProfileDto {
   @MaxLength(2000)
   experienceDescription?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      'Date of birth. Accepts: DDMMYY, MMDDYY, YYMMDD, DDMMYYYY, MMDDYYYY, YYYYMMDD, DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD. Stored as YYYY-MM-DD.',
+    example: '15011990',
+  })
   @IsOptional()
-  @IsDateString()
+  @IsFlexibleDate()
+  @Transform(({ value }) =>
+    value ? parseFlexibleDate(value) ?? value : undefined,
+  )
   dateOfBirth?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      'Date of joining. Accepts: DDMMYY, MMDDYY, YYMMDD, DDMMYYYY, MMDDYYYY, YYYYMMDD, DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD. Stored as YYYY-MM-DD.',
+    example: '01062020',
+  })
   @IsOptional()
-  @IsDateString()
+  @IsFlexibleDate()
+  @Transform(({ value }) =>
+    value ? parseFlexibleDate(value) ?? value : undefined,
+  )
   dateOfJoining?: string;
 }

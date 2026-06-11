@@ -50,8 +50,8 @@ model FacultyProfile {
   experienceDescription  String?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
-  dateOfBirth            DateTime?
-  dateOfJoining          DateTime?
+  dateOfBirth            String?
+  dateOfJoining          String?
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("faculty_profiles")
@@ -70,7 +70,7 @@ model StudentProfile {
   specifyRelationship        String?
   parentGuardianPhoneNumber  String?
   parentGuardianEmailId      String?
-  dateOfBirth                DateTime?
+  dateOfBirth                String?
   gender                     Gender?
   nationality                String?
   state                      String?
