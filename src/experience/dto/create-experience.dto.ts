@@ -45,5 +45,5 @@ export class CreateExperienceDto {
   })
   @IsOptional()
   @IsBoolean()
-  isCurrentRole?: boolean;
+  isCurrentOrganization?: boolean;
 }

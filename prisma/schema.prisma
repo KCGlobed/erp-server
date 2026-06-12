@@ -68,7 +68,7 @@ model Experience {
   functionalArea   String
   fromDate         DateTime
   toDate           DateTime?
-  isCurrentRole    Boolean   @default(false)
+  isCurrentOrganization    Boolean   @default(false)
   userId           String
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
