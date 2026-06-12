@@ -30,6 +30,15 @@ async function bootstrap() {
   );
 
   await app.register(
+    require('@fastify/multipart'),
+    {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+      },
+    },
+  );
+
+  await app.register(
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('@fastify/cors'),
     {

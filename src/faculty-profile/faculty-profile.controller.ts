@@ -3,14 +3,19 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   BadRequestException,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import type { FastifyRequest } from 'fastify';
+import '@fastify/multipart';
 import { FacultyProfileService } from './faculty-profile.service';
 import { UpdateFacultyProfileDto } from './dto/update-faculty-profile.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -41,27 +46,46 @@ export class FacultyProfileController {
     return this.service.updateProfile(user, dto);
   }
 
-  @Get('me/upload-url')
-  @ApiOperation({ summary: 'Get a signed URL to upload a profile photo or banner directly to GCS' })
-  async getUploadUrl(
+  @Post('me/images')
+  @ApiOperation({ summary: 'Upload profile photo and/or banner directly via multipart form data' })
+  @ApiConsumes('multipart/form-data')
+  async uploadImages(
+    @Req() req: FastifyRequest,
     @CurrentUser() user: AuthUser,
-    @Query('fileType') fileType: 'PHOTO' | 'BANNER',
-    @Query('contentType') contentType: string,
   ) {
-    if (!['PHOTO', 'BANNER'].includes(fileType)) {
-      throw new BadRequestException('fileType must be PHOTO or BANNER');
-    }
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(contentType)) {
-      throw new BadRequestException('contentType must be image/jpeg, image/png, or image/webp');
+    if (!req.isMultipart()) {
+      throw new BadRequestException('Request is not multipart');
     }
 
-    const ext = contentType.split('/')[1];
-    const prefix = fileType === 'PHOTO' ? 'photo' : 'banner';
-    const filename = `faculty-profiles/${user.id}-${prefix}-${Date.now()}.${ext}`;
+    let photoData: { buffer: Buffer; mimetype: string } | undefined;
+    let bannerData: { buffer: Buffer; mimetype: string } | undefined;
 
-    return this.gcs.generateUploadSignedUrl(filename, contentType);
+    const parts = req.parts();
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(part.mimetype)) {
+          throw new BadRequestException('Only JPEG, PNG, and WebP images are allowed');
+        }
+
+        const buffer = await part.toBuffer();
+        
+        if (part.fieldname === 'photo') {
+          photoData = { buffer, mimetype: part.mimetype };
+        } else if (part.fieldname === 'banner') {
+          bannerData = { buffer, mimetype: part.mimetype };
+        }
+      }
+    }
+
+    if (!photoData && !bannerData) {
+      throw new BadRequestException('No photo or banner file provided in form data');
+    }
+
+    return this.service.uploadImages(user, photoData, bannerData);
   }
+
+
 
 
 }

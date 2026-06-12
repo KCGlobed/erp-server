@@ -25,38 +25,38 @@ export class GcsService {
     }
   }
 
-
   /**
-   * Generates a signed URL for a client to upload a file directly to GCS.
-   * Limits upload size to 5MB.
+   * Uploads a profile image (photo or banner) directly from the backend to GCS.
    */
-  async generateUploadSignedUrl(
-    filename: string,
-    contentType: string,
-  ): Promise<{ signedUrl: string; publicUrl: string }> {
+  async uploadProfileImage(
+    userId: string,
+    buffer: Buffer,
+    mimetype: string,
+    type: 'photo' | 'banner',
+  ): Promise<string> {
     if (!this.enabled) {
       throw new InternalServerErrorException(
         'GCS not configured. Set GCS_BUCKET_NAME and GCS_PROJECT_ID environment variables.',
       );
     }
 
+    const ext = mimetype.split('/')[1] || 'jpg';
+    const filename = `profiles/${userId}-${type}-${Date.now()}.${ext}`;
     const bucket = this.storage.bucket(this.bucketName);
     const file = bucket.file(filename);
 
-    const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
-
-    const [signedUrl] = await file.getSignedUrl({
-      version: 'v4',
-      action: 'write',
-      expires: expiresAt,
-      contentType,
-      extensionHeaders: {
-        'x-goog-content-length-range': '0,5242880', // 5MB limit
-      },
+    const stream = file.createWriteStream({
+      metadata: { contentType: mimetype },
+      resumable: false,
     });
 
-    const publicUrl = `https://storage.googleapis.com/${this.bucketName}/${filename}`;
+    await new Promise<void>((resolve, reject) => {
+      const readable = Readable.from(buffer);
+      readable.pipe(stream).on('finish', resolve).on('error', reject);
+    });
 
-    return { signedUrl, publicUrl };
+    return `https://storage.googleapis.com/${this.bucketName}/${filename}`;
   }
+
+
 }

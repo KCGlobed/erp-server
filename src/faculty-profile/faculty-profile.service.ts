@@ -86,4 +86,43 @@ export class FacultyProfileService {
 
     return profile;
   }
+
+  async uploadImages(
+    currentUser: AuthUser,
+    photoData?: { buffer: Buffer; mimetype: string },
+    bannerData?: { buffer: Buffer; mimetype: string },
+  ) {
+    this.assertFaculty(currentUser);
+    const updateData: any = {};
+
+    if (photoData) {
+      const url = await this.gcs.uploadProfileImage(
+        currentUser.id,
+        photoData.buffer,
+        photoData.mimetype,
+        'photo',
+      );
+      updateData.profilePhotoUrl = url;
+    }
+
+    if (bannerData) {
+      const url = await this.gcs.uploadProfileImage(
+        currentUser.id,
+        bannerData.buffer,
+        bannerData.mimetype,
+        'banner',
+      );
+      updateData.profileBannerUrl = url;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.facultyProfile.upsert({
+        where: { userId: currentUser.id },
+        create: { userId: currentUser.id, ...updateData },
+        update: { ...updateData },
+      });
+    }
+
+    return this.getProfile(currentUser);
+  }
 }

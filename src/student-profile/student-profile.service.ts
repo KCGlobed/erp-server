@@ -5,12 +5,16 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { GcsService } from '../storage/gcs.service';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
 import { AuthUser } from '../common/types/auth-user.type';
 
 @Injectable()
 export class StudentProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gcs: GcsService,
+  ) {}
 
   private assertStudent(user: AuthUser) {
     if (!user.roles.includes('STUDENT')) {
@@ -167,5 +171,44 @@ export class StudentProfileService {
     }
 
     return profile;
+  }
+
+  async uploadImages(
+    currentUser: AuthUser,
+    photoData?: { buffer: Buffer; mimetype: string },
+    bannerData?: { buffer: Buffer; mimetype: string },
+  ) {
+    this.assertStudent(currentUser);
+    const updateData: any = {};
+
+    if (photoData) {
+      const url = await this.gcs.uploadProfileImage(
+        currentUser.id,
+        photoData.buffer,
+        photoData.mimetype,
+        'photo',
+      );
+      updateData.profilePhotoUrl = url;
+    }
+
+    if (bannerData) {
+      const url = await this.gcs.uploadProfileImage(
+        currentUser.id,
+        bannerData.buffer,
+        bannerData.mimetype,
+        'banner',
+      );
+      updateData.profileBannerUrl = url;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.studentProfile.upsert({
+        where: { userId: currentUser.id },
+        create: { userId: currentUser.id, ...updateData },
+        update: { ...updateData },
+      });
+    }
+
+    return this.getMyProfile(currentUser);
   }
 }
