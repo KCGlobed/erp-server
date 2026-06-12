@@ -3,16 +3,11 @@ import {
   Controller,
   Get,
   Patch,
-  Post,
-  UploadedFile,
-  UseInterceptors,
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
-  ApiConsumes,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
@@ -68,21 +63,5 @@ export class FacultyProfileController {
     return this.gcs.generateUploadSignedUrl(filename, contentType);
   }
 
-  @Post('me/photo')
-  @ApiOperation({ summary: 'Deprecated: Upload profile photo to Google Cloud Storage (Use GET /me/upload-url instead)' })
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadPhoto(
-    @CurrentUser() user: AuthUser,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    if (!file) throw new BadRequestException('No file provided');
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowed.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'Only JPEG, PNG, and WebP images are allowed',
-      );
-    }
-    return this.service.uploadPhoto(user, file.buffer, file.mimetype);
-  }
+
 }

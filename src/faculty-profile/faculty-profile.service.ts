@@ -86,23 +86,4 @@ export class FacultyProfileService {
 
     return profile;
   }
-
-  async uploadPhoto(currentUser: AuthUser, buffer: Buffer, mimetype: string) {
-    this.assertFaculty(currentUser);
-
-    const url = await this.gcs.uploadProfilePhoto(
-      currentUser.id,
-      buffer,
-      mimetype,
-    );
-
-    // Save URL to profile
-    await this.prisma.facultyProfile.upsert({
-      where: { userId: currentUser.id },
-      create: { userId: currentUser.id, profilePhotoUrl: url },
-      update: { profilePhotoUrl: url },
-    });
-
-    return { profilePhotoUrl: url };
-  }
 }

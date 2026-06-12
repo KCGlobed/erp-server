@@ -25,38 +25,6 @@ export class GcsService {
     }
   }
 
-  /**
-   * Legacy method for direct streaming uploads.
-   */
-  async uploadProfilePhoto(
-    userId: string,
-    buffer: Buffer,
-    mimetype: string,
-  ): Promise<string> {
-    if (!this.enabled) {
-      throw new InternalServerErrorException(
-        'GCS not configured. Set GCS_BUCKET_NAME and GCS_PROJECT_ID environment variables.',
-      );
-    }
-
-    const ext = mimetype.split('/')[1] || 'jpg';
-    const filename = `faculty-profiles/${userId}-${Date.now()}.${ext}`;
-    const bucket = this.storage.bucket(this.bucketName);
-    const file = bucket.file(filename);
-
-    const stream = file.createWriteStream({
-      metadata: { contentType: mimetype },
-      resumable: false,
-      public: true,
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      const readable = Readable.from(buffer);
-      readable.pipe(stream).on('finish', resolve).on('error', reject);
-    });
-
-    return `https://storage.googleapis.com/${this.bucketName}/${filename}`;
-  }
 
   /**
    * Generates a signed URL for a client to upload a file directly to GCS.
