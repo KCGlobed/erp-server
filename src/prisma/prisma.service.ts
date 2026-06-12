@@ -23,12 +23,30 @@ export class PrismaService
         'DATABASE_URL environment variable is missing. Please set it in your environment (e.g., Google Cloud Run Variables).',
       );
     }
-    const useSsl = connectionString.includes('sslmode=require') || connectionString.includes('ssl=true');
-    
-    const pool = new Pool({ 
+    // Use SSL for any non-local host — this covers Cloud SQL and all remote DBs.
+    // We also honour explicit sslmode/ssl flags in the URL as a fallback.
+    const isRemoteHost = (() => {
+      try {
+        const url = new URL(connectionString);
+        const host = url.hostname;
+        return host !== 'localhost' && host !== '127.0.0.1' && host !== '::1';
+      } catch {
+        return false;
+      }
+    })();
+
+    const hasSslFlag =
+      connectionString.includes('sslmode=require') ||
+      connectionString.includes('sslmode=verify-full') ||
+      connectionString.includes('ssl=true');
+
+    const useSsl = isRemoteHost || hasSslFlag;
+
+    const pool = new Pool({
       connectionString,
-      ssl: useSsl ? { rejectUnauthorized: false } : undefined
+      ssl: useSsl ? { rejectUnauthorized: false } : undefined,
     });
+
     const adapter = new PrismaPg(pool);
 
     super({

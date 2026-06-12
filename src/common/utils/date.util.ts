@@ -13,7 +13,8 @@
  *  - DD/MM/YYYY   e.g. 15/01/1990
  *  - MM-DD-YYYY   e.g. 01-15-1990
  *  - DD-MM-YYYY   e.g. 15-01-1990
- *  - YYYY-MM-DD   e.g. 1990-01-15  (already canonical — passed through)
+ *  - YYYY-MM-DD          e.g. 1990-01-15  (already canonical — passed through)
+ *  - YYYY-MM-DDTHH:mm:ss.sssZ  ISO DateTime (already transformed — passed through)
  *
  * Returns the normalized YYYY-MM-DD string, or null if parsing fails.
  */
@@ -21,6 +22,13 @@ export function parseFlexibleDate(input: string): string | null {
   if (!input || typeof input !== 'string') return null;
 
   const raw = input.trim();
+
+  // ── ISO DateTime (already transformed by @Transform, e.g. "2026-06-01T00:00:00.000Z") ─
+  const isoDateTimeMatch = raw.match(/^(\d{4}-\d{2}-\d{2})T/);
+  if (isoDateTimeMatch) {
+    // Strip the time portion and re-validate the date part
+    return parseFlexibleDate(isoDateTimeMatch[1]);
+  }
 
   // Helper: build YYYY-MM-DD from parts
   const build = (y: number, m: number, d: number): string | null => {
