@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Storage } from '@google-cloud/storage';
 import { Readable } from 'stream';
-import * as path from 'path';
 
 @Injectable()
 export class GcsService {
@@ -26,13 +25,16 @@ export class GcsService {
     }
   }
 
+  /**
+   * Legacy method for direct streaming uploads.
+   */
   async uploadProfilePhoto(
     userId: string,
     buffer: Buffer,
     mimetype: string,
   ): Promise<string> {
     if (!this.enabled) {
-      throw new Error(
+      throw new InternalServerErrorException(
         'GCS not configured. Set GCS_BUCKET_NAME and GCS_PROJECT_ID environment variables.',
       );
     }
@@ -54,5 +56,39 @@ export class GcsService {
     });
 
     return `https://storage.googleapis.com/${this.bucketName}/${filename}`;
+  }
+
+  /**
+   * Generates a signed URL for a client to upload a file directly to GCS.
+   * Limits upload size to 5MB.
+   */
+  async generateUploadSignedUrl(
+    filename: string,
+    contentType: string,
+  ): Promise<{ signedUrl: string; publicUrl: string }> {
+    if (!this.enabled) {
+      throw new InternalServerErrorException(
+        'GCS not configured. Set GCS_BUCKET_NAME and GCS_PROJECT_ID environment variables.',
+      );
+    }
+
+    const bucket = this.storage.bucket(this.bucketName);
+    const file = bucket.file(filename);
+
+    const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    const [signedUrl] = await file.getSignedUrl({
+      version: 'v4',
+      action: 'write',
+      expires: expiresAt,
+      contentType,
+      extensionHeaders: {
+        'x-goog-content-length-range': '0,5242880', // 5MB limit
+      },
+    });
+
+    const publicUrl = `https://storage.googleapis.com/${this.bucketName}/${filename}`;
+
+    return { signedUrl, publicUrl };
   }
 }

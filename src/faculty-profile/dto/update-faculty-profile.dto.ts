@@ -19,6 +19,16 @@ import { parseDateToDateTime } from '../../common/utils/date.util';
 import { CreateExperienceDto } from '../../experience/dto/create-experience.dto';
 
 export class UpdateFacultyProfileDto {
+  @ApiPropertyOptional({ description: 'Public URL of the profile photo' })
+  @IsOptional()
+  @IsUrl()
+  profilePhotoUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Public URL of the profile banner' })
+  @IsOptional()
+  @IsUrl()
+  profileBannerUrl?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -30,11 +40,6 @@ export class UpdateFacultyProfileDto {
   @IsEnum(Gender)
   gender?: Gender;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  @IsUrl()
-  profilePhotoUrl?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -3,13 +3,18 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { FacultyProfileController } from './faculty-profile.controller';
 import { FacultyProfileService } from './faculty-profile.service';
-import { GcsService } from './gcs.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ExperienceModule } from '../experience/experience.module';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
-  imports: [PrismaModule, MulterModule.register({ storage: memoryStorage() }), ExperienceModule],
+  imports: [
+    PrismaModule,
+    MulterModule.register({ storage: memoryStorage() }),
+    ExperienceModule,
+    StorageModule,
+  ],
   controllers: [FacultyProfileController],
-  providers: [FacultyProfileService, GcsService],
+  providers: [FacultyProfileService],
 })
 export class FacultyProfileModule {}

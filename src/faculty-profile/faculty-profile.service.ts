@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { GcsService } from './gcs.service';
+import { GcsService } from '../storage/gcs.service';
 import { UpdateFacultyProfileDto } from './dto/update-faculty-profile.dto';
 import { AuthUser } from '../common/types/auth-user.type';
 
@@ -42,6 +42,8 @@ export class FacultyProfileService {
       lastName: user.lastName,
       email: user.email,
       status: user.status,
+      profilePhotoUrl: user.facultyProfile?.profilePhotoUrl,
+      profileBannerUrl: user.facultyProfile?.profileBannerUrl,
       profile: user.facultyProfile,
       experiences: user.experiences,
     };

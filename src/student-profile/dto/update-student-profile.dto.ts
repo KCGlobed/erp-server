@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUrl,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -16,6 +17,17 @@ import { CreateExperienceDto } from '../../experience/dto/create-experience.dto'
 
 export class UpdateStudentProfileDto {
   // ── Personal Information ──────────────────────────────────────
+
+  @ApiPropertyOptional({ description: 'Public URL of the profile photo' })
+  @IsOptional()
+  @IsUrl()
+  profilePhotoUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Public URL of the profile banner' })
+  @IsOptional()
+  @IsUrl()
+  profileBannerUrl?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

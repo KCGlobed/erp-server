@@ -50,6 +50,8 @@ export class StudentProfileService {
       lastName: user.lastName,
       email: user.email,
       status: user.status,
+      profilePhotoUrl: user.studentProfile?.profilePhotoUrl,
+      profileBannerUrl: user.studentProfile?.profileBannerUrl,
       profile: user.studentProfile,
       experiences: user.experiences,
     };
@@ -116,6 +118,8 @@ export class StudentProfileService {
       lastName: user.lastName,
       email: user.email,
       status: user.status,
+      profilePhotoUrl: user.studentProfile?.profilePhotoUrl,
+      profileBannerUrl: user.studentProfile?.profileBannerUrl,
       profile: user.studentProfile,
       experiences: user.experiences,
     };
