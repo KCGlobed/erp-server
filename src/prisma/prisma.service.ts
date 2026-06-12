@@ -11,8 +11,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+  implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
@@ -41,10 +40,16 @@ export class PrismaService
       connectionString.includes('ssl=true');
 
     const useSsl = isRemoteHost || hasSslFlag;
-
+    console.log({
+      connectionString,
+      isRemoteHost,
+      hasSslFlag,
+      useSsl,
+    });
     const pool = new Pool({
       connectionString,
-      ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+      ssl: false,
+      // ssl: useSsl ? { rejectUnauthorized: false } : undefined,
     });
 
     const adapter = new PrismaPg(pool);

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
@@ -60,11 +61,37 @@ export class StudentProfileService {
   ) {
     this.assertStudent(currentUser);
 
+    const { experiences, ...profileData } = dto;
+
+    // Guard: cannot add experiences if fresher
+    if (experiences && experiences.length > 0 && profileData.isFresher) {
+      throw new BadRequestException(
+        'Cannot add experiences when isFresher is set to true.',
+      );
+    }
+
     const profile = await this.prisma.studentProfile.upsert({
       where: { userId: currentUser.id },
-      create: { userId: currentUser.id, ...dto },
-      update: { ...dto },
+      create: { userId: currentUser.id, ...profileData },
+      update: { ...profileData },
     });
+
+    // Replace experiences if the key was sent
+    if (experiences !== undefined) {
+      await this.prisma.$transaction([
+        this.prisma.experience.deleteMany({ where: { userId: currentUser.id } }),
+        ...experiences.map((exp) =>
+          this.prisma.experience.create({
+            data: {
+              ...exp,
+              fromDate: new Date(exp.fromDate),
+              toDate: exp.toDate ? new Date(exp.toDate) : undefined,
+              userId: currentUser.id,
+            },
+          }),
+        ),
+      ]);
+    }
 
     return profile;
   }
@@ -102,16 +129,38 @@ export class StudentProfileService {
   ) {
     this.assertAdmin(currentUser);
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: studentId },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: studentId } });
     if (!user) throw new NotFoundException('Student not found');
+
+    const { experiences, ...profileData } = dto;
+
+    if (experiences && experiences.length > 0 && profileData.isFresher) {
+      throw new BadRequestException(
+        'Cannot add experiences when isFresher is set to true.',
+      );
+    }
 
     const profile = await this.prisma.studentProfile.upsert({
       where: { userId: studentId },
-      create: { userId: studentId, ...dto },
-      update: { ...dto },
+      create: { userId: studentId, ...profileData },
+      update: { ...profileData },
     });
+
+    if (experiences !== undefined) {
+      await this.prisma.$transaction([
+        this.prisma.experience.deleteMany({ where: { userId: studentId } }),
+        ...experiences.map((exp) =>
+          this.prisma.experience.create({
+            data: {
+              ...exp,
+              fromDate: new Date(exp.fromDate),
+              toDate: exp.toDate ? new Date(exp.toDate) : undefined,
+              userId: studentId,
+            },
+          }),
+        ),
+      ]);
+    }
 
     return profile;
   }

@@ -1,15 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 import { Gender } from '@prisma/client';
 import { IsFlexibleDate } from '../../common/decorators/is-flexible-date.decorator';
 import { parseDateToDateTime } from '../../common/utils/date.util';
+import { CreateExperienceDto } from '../../experience/dto/create-experience.dto';
 
 export class UpdateStudentProfileDto {
   // ── Personal Information ──────────────────────────────────────
@@ -207,4 +210,17 @@ export class UpdateStudentProfileDto {
   @IsOptional()
   @IsBoolean()
   isFresher?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Experiences to upsert. Sending this array REPLACES all existing experiences. ' +
+      'Omit the key entirely to leave existing experiences untouched. ' +
+      'Send an empty array [] to clear all experiences.',
+    type: [CreateExperienceDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateExperienceDto)
+  experiences?: CreateExperienceDto[];
 }

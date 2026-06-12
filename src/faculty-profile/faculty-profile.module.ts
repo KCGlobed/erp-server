@@ -5,9 +5,10 @@ import { FacultyProfileController } from './faculty-profile.controller';
 import { FacultyProfileService } from './faculty-profile.service';
 import { GcsService } from './gcs.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ExperienceModule } from '../experience/experience.module';
 
 @Module({
-  imports: [PrismaModule, MulterModule.register({ storage: memoryStorage() })],
+  imports: [PrismaModule, MulterModule.register({ storage: memoryStorage() }), ExperienceModule],
   controllers: [FacultyProfileController],
   providers: [FacultyProfileService, GcsService],
 })
