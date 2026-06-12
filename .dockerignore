@@ -9,3 +9,4 @@ docker-compose.yml
 test
 .env
 .DS_Store
+erp.json
