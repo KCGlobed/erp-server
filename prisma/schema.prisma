@@ -27,11 +27,11 @@ model User {
   cohort             Cohort?                   @relation(fields: [cohortId], references: [id])
   directPermissions  UserPermission[]
   roles              UserRole[]
-  facultyProfile     FacultyProfile?
-  studentProfile     StudentProfile?
-  refreshTokens      RefreshToken[]
-  logs               SystemLog[]
   experiences        Experience[]
+  facultyProfile     FacultyProfile?
+  refreshTokens      RefreshToken[]
+  studentProfile     StudentProfile?
+  logs               SystemLog[]
 }
 
 model FacultyProfile {
@@ -49,11 +49,11 @@ model FacultyProfile {
   permanentAddress       String?
   experienceYears        Int?
   experienceDescription  String?
-  isFresher              Boolean   @default(false)
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
   dateOfBirth            DateTime?
   dateOfJoining          DateTime?
+  isFresher              Boolean   @default(false)
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("faculty_profiles")
@@ -63,14 +63,12 @@ model Experience {
   id               String    @id @default(cuid())
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
-
   organizationName String
   designation      String
   functionalArea   String
   fromDate         DateTime
-  toDate           DateTime?           // null = currently working here
+  toDate           DateTime?
   isCurrentRole    Boolean   @default(false)
-
   userId           String
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -80,8 +78,6 @@ model Experience {
 model StudentProfile {
   id                         String    @id @default(cuid())
   userId                     String    @unique
-
-  // Personal Information
   mobileNumber               String?
   emergencyContactName       String?
   emergencyContactNumber     String?
@@ -97,35 +93,25 @@ model StudentProfile {
   city                       String?
   pinCode                    String?
   completeAddress            String?
-
-  // Academic — Class 10
   class10YearOfPassing       String?
   class10GradeType           String?
   class10Score               String?
   class10MediumOfInstruction String?
-
-  // Academic — Class 12
   class12YearOfPassing       String?
   class12GradeType           String?
   class12Score               String?
   class12MediumOfInstruction String?
-
-  // Academic — Undergraduate
   ugStatus                   String?
   ugGradeType                String?
   ugScore                    String?
   ugInstitutionName          String?
   ugMediumOfInstruction      String?
-
-  // Academic — Higher Qualification
-  hasHigherQualification     Boolean  @default(false)
+  hasHigherQualification     Boolean   @default(false)
   higherQualification        String?
-  isFresher                  Boolean  @default(false)
-
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
-
-  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+  isFresher                  Boolean   @default(false)
+  user                       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("student_profiles")
 }
