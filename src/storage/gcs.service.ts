@@ -58,5 +58,36 @@ export class GcsService {
     return `https://storage.googleapis.com/${this.bucketName}/${filename}`;
   }
 
+  /**
+   * Generates a signed URL for temporary access to a private object.
+   */
+  async getSignedUrl(urlOrFilename: string): Promise<string | null> {
+    if (!urlOrFilename || !this.enabled) return urlOrFilename || null;
 
+    try {
+      // Extract filename if a full Google Cloud Storage URL was provided
+      const prefix = `https://storage.googleapis.com/${this.bucketName}/`;
+      let filename = urlOrFilename;
+      if (urlOrFilename.startsWith(prefix)) {
+        filename = urlOrFilename.substring(prefix.length);
+      } else if (urlOrFilename.startsWith('http')) {
+        // If it's a different external URL, return it as-is
+        return urlOrFilename;
+      }
+
+      const bucket = this.storage.bucket(this.bucketName);
+      const file = bucket.file(filename);
+
+      const [url] = await file.getSignedUrl({
+        version: 'v4',
+        action: 'read',
+        expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      });
+      
+      return url;
+    } catch (error) {
+      console.error('Error generating signed URL:', error);
+      return urlOrFilename; // Fallback to returning the original path/url
+    }
+  }
 }

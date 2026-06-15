@@ -48,14 +48,23 @@ export class StudentProfileService {
 
     if (!user) throw new NotFoundException('User not found');
 
+    // Generate short-lived signed URLs for GCS images
+    const profilePhotoUrl = user.studentProfile?.profilePhotoUrl 
+      ? await this.gcs.getSignedUrl(user.studentProfile.profilePhotoUrl) 
+      : null;
+      
+    const profileBannerUrl = user.studentProfile?.profileBannerUrl
+      ? await this.gcs.getSignedUrl(user.studentProfile.profileBannerUrl)
+      : null;
+
     return {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       status: user.status,
-      profilePhotoUrl: user.studentProfile?.profilePhotoUrl,
-      profileBannerUrl: user.studentProfile?.profileBannerUrl,
+      profilePhotoUrl,
+      profileBannerUrl,
       profile: user.studentProfile,
       experiences: user.experiences,
     };
@@ -116,14 +125,23 @@ export class StudentProfileService {
 
     if (!user) throw new NotFoundException('Student not found');
 
+    // Generate short-lived signed URLs for GCS images
+    const profilePhotoUrl = user.studentProfile?.profilePhotoUrl 
+      ? await this.gcs.getSignedUrl(user.studentProfile.profilePhotoUrl) 
+      : null;
+      
+    const profileBannerUrl = user.studentProfile?.profileBannerUrl
+      ? await this.gcs.getSignedUrl(user.studentProfile.profileBannerUrl)
+      : null;
+
     return {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       status: user.status,
-      profilePhotoUrl: user.studentProfile?.profilePhotoUrl,
-      profileBannerUrl: user.studentProfile?.profileBannerUrl,
+      profilePhotoUrl,
+      profileBannerUrl,
       profile: user.studentProfile,
       experiences: user.experiences,
     };

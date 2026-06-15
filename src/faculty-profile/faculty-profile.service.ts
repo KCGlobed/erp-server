@@ -36,14 +36,23 @@ export class FacultyProfileService {
 
     if (!user) throw new NotFoundException('User not found');
 
+    // Generate short-lived signed URLs for GCS images
+    const profilePhotoUrl = user.facultyProfile?.profilePhotoUrl 
+      ? await this.gcs.getSignedUrl(user.facultyProfile.profilePhotoUrl) 
+      : null;
+      
+    const profileBannerUrl = user.facultyProfile?.profileBannerUrl
+      ? await this.gcs.getSignedUrl(user.facultyProfile.profileBannerUrl)
+      : null;
+
     return {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       status: user.status,
-      profilePhotoUrl: user.facultyProfile?.profilePhotoUrl,
-      profileBannerUrl: user.facultyProfile?.profileBannerUrl,
+      profilePhotoUrl,
+      profileBannerUrl,
       profile: user.facultyProfile,
       experiences: user.experiences,
     };
