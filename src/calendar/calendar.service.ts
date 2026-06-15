@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { CreateAcademicEventDto } from './dto/create-event.dto';
+import { UpdateAcademicEventDto } from './dto/update-event.dto';
 import { CreateExamScheduleDto } from './dto/create-exam.dto';
 import { AuthUser } from '../common/types/auth-user.type';
 
@@ -134,7 +135,7 @@ export class CalendarService {
   // --- Academic Events ---
 
   async createEvent(dto: CreateAcademicEventDto) {
-    const { cohortIds, courseIds, ...rest } = dto;
+    const { cohortIds, courseIds, facultyIds, ...rest } = dto;
     return this.prisma.$transaction(async (tx) => {
       const event = await tx.academicEvent.create({
         data: rest,
@@ -162,11 +163,23 @@ export class CalendarService {
         }
       }
 
+      if (facultyIds && facultyIds.length > 0) {
+        for (const fid of facultyIds) {
+          await tx.eventFaculty.create({
+            data: {
+              eventId: event.id,
+              facultyId: fid,
+            },
+          });
+        }
+      }
+
       return tx.academicEvent.findUnique({
         where: { id: event.id },
         include: {
           cohorts: { include: { cohort: true } },
           courses: { include: { course: true } },
+          faculties: { select: { faculty: { select: { id: true, firstName: true, lastName: true, email: true } } } },
         },
       });
     });
@@ -182,6 +195,7 @@ export class CalendarService {
         include: {
           cohorts: { include: { cohort: true } },
           courses: { include: { course: true } },
+          faculties: { select: { faculty: { select: { id: true, firstName: true, lastName: true, email: true } } } },
         },
         orderBy: { startDate: 'asc' },
       });
@@ -192,6 +206,7 @@ export class CalendarService {
 
     let targetCohortIds: string[] = [];
     let targetCourseIds: string[] = [];
+    let targetFacultyIds: string[] = [];
 
     if (isStudent) {
       const user = await this.prisma.user.findUnique({
@@ -207,6 +222,19 @@ export class CalendarService {
       if (user?.enrollments) {
         targetCourseIds = user.enrollments.map((e) => e.courseId);
       }
+      
+      const facultyAssignments = await this.prisma.user.findMany({
+        where: {
+          roles: { some: { role: { name: 'FACULTY' } } },
+          OR: [
+            { facultyCohorts: { some: { cohortId: { in: targetCohortIds } } } },
+            { facultyAssignments: { some: { courseId: { in: targetCourseIds } } } },
+          ],
+        },
+        select: { id: true },
+      });
+      targetFacultyIds = facultyAssignments.map((f) => f.id);
+
     } else if (isFaculty) {
       const [cohortAssignments, courseAssignments] = await Promise.all([
         this.prisma.facultyCohortAssignment.findMany({
@@ -224,6 +252,7 @@ export class CalendarService {
 
     return this.prisma.academicEvent.findMany({
       where: {
+        isActive: true,
         AND: [
           {
             OR: [
@@ -235,12 +264,16 @@ export class CalendarService {
             OR: [
               // Global
               {
-                AND: [{ cohorts: { none: {} } }, { courses: { none: {} } }],
+                AND: [{ cohorts: { none: {} } }, { courses: { none: {} } }, { faculties: { none: {} } }],
               },
               // Cohort specific
               { cohorts: { some: { cohortId: { in: targetCohortIds } } } },
               // Course specific
               { courses: { some: { courseId: { in: targetCourseIds } } } },
+              // Faculty specific
+              isFaculty
+                ? { faculties: { some: { facultyId: currentUser.id } } }
+                : { faculties: { some: { facultyId: { in: targetFacultyIds } } } },
             ],
           },
         ],
@@ -248,8 +281,61 @@ export class CalendarService {
       include: {
         cohorts: { include: { cohort: true } },
         courses: { include: { course: true } },
+        faculties: { select: { faculty: { select: { id: true, firstName: true, lastName: true, email: true } } } },
       },
       orderBy: { startDate: 'asc' },
+    });
+  }
+
+  async updateEvent(id: string, dto: UpdateAcademicEventDto) {
+    const { cohortIds, courseIds, facultyIds, ...rest } = dto;
+    return this.prisma.$transaction(async (tx) => {
+      const event = await tx.academicEvent.update({
+        where: { id },
+        data: rest,
+      });
+
+      if (cohortIds !== undefined) {
+        await tx.eventCohort.deleteMany({ where: { eventId: id } });
+        if (cohortIds.length > 0) {
+          await tx.eventCohort.createMany({
+            data: cohortIds.map((cid) => ({ eventId: id, cohortId: cid })),
+          });
+        }
+      }
+
+      if (courseIds !== undefined) {
+        await tx.eventCourse.deleteMany({ where: { eventId: id } });
+        if (courseIds.length > 0) {
+          await tx.eventCourse.createMany({
+            data: courseIds.map((cid) => ({ eventId: id, courseId: cid })),
+          });
+        }
+      }
+
+      if (facultyIds !== undefined) {
+        await tx.eventFaculty.deleteMany({ where: { eventId: id } });
+        if (facultyIds.length > 0) {
+          await tx.eventFaculty.createMany({
+            data: facultyIds.map((fid) => ({ eventId: id, facultyId: fid })),
+          });
+        }
+      }
+
+      return tx.academicEvent.findUnique({
+        where: { id },
+        include: {
+          cohorts: { include: { cohort: true } },
+          courses: { include: { course: true } },
+          faculties: { select: { faculty: { select: { id: true, firstName: true, lastName: true, email: true } } } },
+        },
+      });
+    });
+  }
+
+  async deleteEvent(id: string) {
+    return this.prisma.academicEvent.delete({
+      where: { id },
     });
   }
 

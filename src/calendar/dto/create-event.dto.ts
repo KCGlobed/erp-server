@@ -44,4 +44,14 @@ export class CreateAcademicEventDto {
   @IsArray()
   @IsString({ each: true })
   courseIds?: string[];
+
+  @ApiPropertyOptional({ example: ['faculty_id'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  facultyIds?: string[];
+
+  @ApiPropertyOptional({ example: true, default: true })
+  @IsOptional()
+  isActive?: boolean;
 }

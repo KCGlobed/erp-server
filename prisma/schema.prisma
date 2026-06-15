@@ -32,6 +32,7 @@ model User {
   refreshTokens      RefreshToken[]
   studentProfile     StudentProfile?
   logs               SystemLog[]
+  eventFaculties     EventFaculty[]
 }
 
 model FacultyProfile {
@@ -404,10 +405,12 @@ model AcademicEvent {
   endDate        DateTime
   type           AcademicEventType
   visibleToRoles String[]
+  isActive       Boolean           @default(true)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   cohorts        EventCohort[]
   courses        EventCourse[]
+  faculties      EventFaculty[]
 }
 
 model EventCohort {
@@ -426,6 +429,15 @@ model EventCourse {
   event    AcademicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@id([eventId, courseId])
+}
+
+model EventFaculty {
+  eventId   String
+  facultyId String
+  event     AcademicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  faculty   User          @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, facultyId])
 }
 
 model ExamSchedule {

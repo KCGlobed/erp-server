@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Delete, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CalendarService } from './calendar.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { CreateAcademicEventDto } from './dto/create-event.dto';
+import { UpdateAcademicEventDto } from './dto/update-event.dto';
 import { CreateExamScheduleDto } from './dto/create-exam.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../common/decorators/permissions.decorator';
@@ -63,6 +64,20 @@ export class CalendarController {
   })
   findEvents(@CurrentUser() user: AuthUser) {
     return this.calendarService.findEvents(user);
+  }
+
+  @Patch('events/:id')
+  @RequirePermissions(PERMISSION_NAMES.MANAGE_CALENDAR)
+  @ApiOperation({ summary: 'Update an Academic Event (Admin)' })
+  updateEvent(@Param('id') id: string, @Body() dto: UpdateAcademicEventDto) {
+    return this.calendarService.updateEvent(id, dto);
+  }
+
+  @Delete('events/:id')
+  @RequirePermissions(PERMISSION_NAMES.MANAGE_CALENDAR)
+  @ApiOperation({ summary: 'Delete an Academic Event (Admin)' })
+  deleteEvent(@Param('id') id: string) {
+    return this.calendarService.deleteEvent(id);
   }
 
   // --- Exams ---
