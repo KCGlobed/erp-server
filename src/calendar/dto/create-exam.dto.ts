@@ -1,9 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
-import { AssessmentType } from '@prisma/client';
+import { IsDate, IsEnum, IsOptional, IsString, IsInt, IsBoolean } from 'class-validator';
+import { AssessmentType, ExamFormat } from '@prisma/client';
 import { Type } from 'class-transformer';
 
 export class CreateExamScheduleDto {
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  courseId?: string;
+
   @ApiProperty()
   @IsString()
   subjectId: string;
@@ -36,8 +50,26 @@ export class CreateExamScheduleDto {
   @IsEnum(AssessmentType)
   type: AssessmentType;
 
+  @ApiPropertyOptional({ enum: ExamFormat })
+  @IsOptional()
+  @IsEnum(ExamFormat)
+  examFormat?: ExamFormat;
+
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  invigilatorId?: string;
+  @IsInt()
+  @Type(() => Number)
+  marks?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  numQuestions?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
 }

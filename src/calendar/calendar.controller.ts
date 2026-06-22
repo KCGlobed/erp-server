@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Patch, Delete, Param } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Delete, Param, UnauthorizedException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CalendarService } from './calendar.service';
 import { CreateSessionDto } from './dto/create-session.dto';
@@ -6,6 +6,7 @@ import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { CreateAcademicEventDto } from './dto/create-event.dto';
 import { UpdateAcademicEventDto } from './dto/update-event.dto';
 import { CreateExamScheduleDto } from './dto/create-exam.dto';
+import { UpdateExamScheduleDto } from './dto/update-exam.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../common/decorators/permissions.decorator';
 import { PERMISSION_NAMES } from '../common/constants/rbac.constants';
@@ -83,15 +84,29 @@ export class CalendarController {
   // --- Exams ---
 
   @Post('exams')
-  @RequirePermissions(PERMISSION_NAMES.MANAGE_CALENDAR)
-  @ApiOperation({ summary: 'Create an Exam Schedule (Admin)' })
-  createExam(@Body() dto: CreateExamScheduleDto) {
-    return this.calendarService.createExam(dto);
+  @ApiOperation({ summary: 'Create an Exam Schedule (Admin/Faculty)' })
+  createExam(@Body() dto: CreateExamScheduleDto, @CurrentUser() user: AuthUser) {
+    if (user.roles.includes('STUDENT')) throw new UnauthorizedException('Students cannot create exams');
+    return this.calendarService.createExam(dto, user);
   }
 
   @Get('exams')
   @ApiOperation({ summary: 'List exams (filtered by relevance/invigilation)' })
   findExams(@CurrentUser() user: AuthUser) {
     return this.calendarService.findExams(user);
+  }
+
+  @Patch('exams/:id')
+  @ApiOperation({ summary: 'Update an Exam Schedule' })
+  updateExam(@Param('id') id: string, @Body() dto: UpdateExamScheduleDto, @CurrentUser() user: AuthUser) {
+    if (user.roles.includes('STUDENT')) throw new UnauthorizedException('Students cannot update exams');
+    return this.calendarService.updateExam(id, dto, user);
+  }
+
+  @Delete('exams/:id')
+  @ApiOperation({ summary: 'Delete an Exam Schedule' })
+  deleteExam(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    if (user.roles.includes('STUDENT')) throw new UnauthorizedException('Students cannot delete exams');
+    return this.calendarService.deleteExam(id, user);
   }
 }

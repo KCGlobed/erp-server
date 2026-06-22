@@ -20,7 +20,7 @@ model User {
   classAttendances   ClassAttendance[]
   classesTaught      ClassSchedule[]
   enrollments        CourseEnrollment[]
-  invigilations      ExamSchedule[]
+  createdExams       ExamSchedule[]            @relation("ExamCreator")
   facultyCohorts     FacultyCohortAssignment[]
   facultyAssignments FacultyCourseAssignment[]
   attendanceRecords  StudentAttendanceRecord[]
@@ -232,6 +232,7 @@ model Course {
   curriculums    Curriculum[]
   events         EventCourse[]
   facultyCourses FacultyCourseAssignment[]
+  examSchedules  ExamSchedule[]
 }
 
 model Curriculum {
@@ -442,6 +443,9 @@ model EventFaculty {
 
 model ExamSchedule {
   id            String         @id @default(cuid())
+  name          String?        @default("Unnamed Exam")
+  description   String?
+  courseId      String?
   subjectId     String
   cohortId      String
   date          DateTime
@@ -449,11 +453,16 @@ model ExamSchedule {
   endTime       DateTime
   room          String?
   type          AssessmentType
-  invigilatorId String?
+  examFormat    ExamFormat?
+  marks         Int?
+  numQuestions  Int?
+  isActive      Boolean        @default(true)
+  createdById   String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   cohort        Cohort         @relation(fields: [cohortId], references: [id], onDelete: Cascade)
-  invigilator   User?          @relation(fields: [invigilatorId], references: [id])
+  course        Course?        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdBy     User?          @relation("ExamCreator", fields: [createdById], references: [id])
   subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 }
 
@@ -580,4 +589,9 @@ enum AssessmentType {
 enum AttendanceStatus {
   PRESENT
   ABSENT
+}
+
+enum ExamFormat {
+  MCQ
+  WRITTEN
 }

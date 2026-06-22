@@ -13,7 +13,7 @@ import { AuthUser } from '../common/types/auth-user.type';
 
 @Injectable()
 export class CalendarService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // --- Academic Sessions ---
 
@@ -222,7 +222,7 @@ export class CalendarService {
       if (user?.enrollments) {
         targetCourseIds = user.enrollments.map((e) => e.courseId);
       }
-      
+
       const facultyAssignments = await this.prisma.user.findMany({
         where: {
           roles: { some: { role: { name: 'FACULTY' } } },
@@ -341,7 +341,7 @@ export class CalendarService {
 
   // --- Exams ---
 
-  async createExam(dto: CreateExamScheduleDto) {
+  async createExam(dto: CreateExamScheduleDto, currentUser: AuthUser) {
     // Validate subject & cohort
     const subject = await this.prisma.subject.findUnique({
       where: { id: dto.subjectId },
@@ -353,25 +353,24 @@ export class CalendarService {
     });
     if (!cohort) throw new NotFoundException('Cohort not found');
 
-    if (dto.invigilatorId) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: dto.invigilatorId },
+    if (dto.courseId) {
+      const course = await this.prisma.course.findUnique({
+        where: { id: dto.courseId },
       });
-      if (!user) throw new NotFoundException('Invigilator user not found');
+      if (!course) throw new NotFoundException('Course not found');
     }
 
     return this.prisma.examSchedule.create({
-      data: dto,
+      data: {
+        ...dto,
+        createdById: currentUser.id,
+      },
       include: {
         subject: true,
         cohort: true,
-        invigilator: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
+        course: true,
+        createdBy: {
+          select: { id: true, firstName: true, lastName: true },
         },
       },
     });
@@ -387,8 +386,9 @@ export class CalendarService {
         include: {
           subject: true,
           cohort: true,
-          invigilator: {
-            select: { id: true, firstName: true, lastName: true, email: true },
+          course: true,
+          createdBy: {
+            select: { id: true, firstName: true, lastName: true },
           },
         },
         orderBy: { date: 'asc' },
@@ -407,12 +407,16 @@ export class CalendarService {
       if (!user?.cohortId) return [];
 
       return this.prisma.examSchedule.findMany({
-        where: { cohortId: user.cohortId },
+        where: {
+          cohortId: user.cohortId,
+          isActive: true
+        },
         include: {
           subject: true,
           cohort: true,
-          invigilator: {
-            select: { id: true, firstName: true, lastName: true, email: true },
+          course: true,
+          createdBy: {
+            select: { id: true, firstName: true, lastName: true },
           },
         },
         orderBy: { date: 'asc' },
@@ -420,7 +424,7 @@ export class CalendarService {
     }
 
     if (isFaculty) {
-      // Faculty see exams for their assigned cohorts or where they are the invigilator
+      // Faculty see exams for their assigned cohorts or where they are the invigilator or creator
       const cohortAssignments =
         await this.prisma.facultyCohortAssignment.findMany({
           where: { userId: currentUser.id },
@@ -431,15 +435,16 @@ export class CalendarService {
       return this.prisma.examSchedule.findMany({
         where: {
           OR: [
-            { invigilatorId: currentUser.id },
+            { createdById: currentUser.id },
             { cohortId: { in: cohortIds } },
           ],
         },
         include: {
           subject: true,
           cohort: true,
-          invigilator: {
-            select: { id: true, firstName: true, lastName: true, email: true },
+          course: true,
+          createdBy: {
+            select: { id: true, firstName: true, lastName: true },
           },
         },
         orderBy: { date: 'asc' },
@@ -447,5 +452,42 @@ export class CalendarService {
     }
 
     return [];
+  }
+
+  async updateExam(id: string, dto: any, currentUser: AuthUser) {
+    const exam = await this.prisma.examSchedule.findUnique({ where: { id } });
+    if (!exam) throw new NotFoundException('Exam not found');
+
+    const isAdmin = currentUser.roles.includes('SUPER_ADMIN') || currentUser.roles.includes('ADMIN');
+    if (!isAdmin && exam.createdById !== currentUser.id) {
+      throw new ConflictException('You do not have permission to update this exam');
+    }
+
+    return this.prisma.examSchedule.update({
+      where: { id },
+      data: dto,
+      include: {
+        subject: true,
+        cohort: true,
+        course: true,
+        createdBy: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+      },
+    });
+  }
+
+  async deleteExam(id: string, currentUser: AuthUser) {
+    const exam = await this.prisma.examSchedule.findUnique({ where: { id } });
+    if (!exam) throw new NotFoundException('Exam not found');
+
+    const isAdmin = currentUser.roles.includes('SUPER_ADMIN') || currentUser.roles.includes('ADMIN');
+    if (!isAdmin && exam.createdById !== currentUser.id) {
+      throw new ConflictException('You do not have permission to delete this exam');
+    }
+
+    return this.prisma.examSchedule.delete({
+      where: { id },
+    });
   }
 }
