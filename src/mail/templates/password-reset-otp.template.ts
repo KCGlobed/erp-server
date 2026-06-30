@@ -13,7 +13,7 @@ export function passwordResetOtpTemplate(otp: string): string {
         <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(108,0,105,0.08);">
           <tr>
             <td style="background-color:#6C0069; padding:28px 32px;">
-              <span style="color:#ffffff; font-size:20px; font-weight:700; letter-spacing:0.5px;">EduERP</span>
+              <span style="color:#ffffff; font-size:20px; font-weight:700; letter-spacing:0.5px;">GCC School</span>
             </td>
           </tr>
           <tr>
@@ -48,7 +48,7 @@ export function passwordResetOtpTemplate(otp: string): string {
           <tr>
             <td style="padding:20px 32px 28px 32px;">
               <p style="margin:0; color:#aaaaaa; font-size:12px; line-height:1.6; text-align:center;">
-                This is an automated message from <strong style="color:#6C0069;">EduERP</strong>. Please do not reply to this email.
+                This is an automated message from <strong style="color:#6C0069;">GCC School</strong>. Please do not reply to this email.
               </p>
             </td>
           </tr>
