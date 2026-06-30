@@ -221,7 +221,7 @@ export class AuthService {
     // Send OTP via email
     await this.mailService.sendMail(
       dto.email.toLowerCase(),
-      'Password Reset OTP - EduERP',
+      'Password Reset OTP - GCC School',
      passwordResetOtpTemplate(otp),
     );
 
