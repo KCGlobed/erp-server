@@ -60,34 +60,17 @@ export class GcsService {
 
   /**
    * Generates a signed URL for temporary access to a private object.
+   * (Currently bypassed to return the public URL directly)
    */
   async getSignedUrl(urlOrFilename: string): Promise<string | null> {
-    if (!urlOrFilename || !this.enabled) return urlOrFilename || null;
+    if (!urlOrFilename) return null;
 
-    try {
-      // Extract filename if a full Google Cloud Storage URL was provided
-      const prefix = `https://storage.googleapis.com/${this.bucketName}/`;
-      let filename = urlOrFilename;
-      if (urlOrFilename.startsWith(prefix)) {
-        filename = urlOrFilename.substring(prefix.length);
-      } else if (urlOrFilename.startsWith('http')) {
-        // If it's a different external URL, return it as-is
-        return urlOrFilename;
-      }
-
-      const bucket = this.storage.bucket(this.bucketName);
-      const file = bucket.file(filename);
-
-      const [url] = await file.getSignedUrl({
-        version: 'v4',
-        action: 'read',
-        expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-      });
-      
-      return url;
-    } catch (error) {
-      console.error('Error generating signed URL:', error);
-      return urlOrFilename; // Fallback to returning the original path/url
+    // If it's already a full HTTP URL, just return it directly.
+    // If we only have a filename, we construct the public Google Cloud Storage URL.
+    if (urlOrFilename.startsWith('http')) {
+      return urlOrFilename;
     }
+
+    return `https://storage.googleapis.com/${this.bucketName}/${urlOrFilename}`;
   }
 }
