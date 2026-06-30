@@ -25,6 +25,7 @@ import { generateRefreshToken, hashToken } from '../common/utils/token.util';
 import { JwtPayload } from '../common/types/jwt-payload.type';
 import { AuthUser } from '../common/types/auth-user.type';
 import { MailService } from 'src/mail/mail.service';
+import { passwordResetOtpTemplate } from 'src/mail/templates/password-reset-otp.template';
 
 @Injectable()
 export class AuthService {
@@ -221,12 +222,7 @@ export class AuthService {
     await this.mailService.sendMail(
       dto.email.toLowerCase(),
       'Password Reset OTP - EduERP',
-      `<div>
-        <h3>Password Reset Request</h3>
-        <p>You requested to reset your password. Use the following 6-digit One-Time Password (OTP) to proceed:</p>
-        <h2 style="letter-spacing: 2px; color: #3b82f6; font-size: 28px; font-weight: bold;">${otp}</h2>
-        <p>This OTP is valid for 10 minutes. If you did not make this request, please ignore this email.</p>
-      </div>`,
+     passwordResetOtpTemplate(otp),
     );
 
     return { message: 'OTP sent successfully to your email' };
