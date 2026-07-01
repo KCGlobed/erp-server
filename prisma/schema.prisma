@@ -33,6 +33,8 @@ model User {
   studentProfile     StudentProfile?
   logs               SystemLog[]
   eventFaculties     EventFaculty[]
+  createdNotifications Notification[]    @relation("NotificationCreator")
+  readNotifications    NotificationRead[]
 }
 
 model FacultyProfile {
@@ -233,6 +235,7 @@ model Course {
   events         EventCourse[]
   facultyCourses FacultyCourseAssignment[]
   examSchedules  ExamSchedule[]
+  notifications  NotificationCourse[]
 }
 
 model Curriculum {
@@ -323,6 +326,7 @@ model Cohort {
   facultyCohorts FacultyCohortAssignment[]
   holidays       HolidayCohort[]
   students       User[]
+  notifications  NotificationCohort[]
 }
 
 model CohortCourse {
@@ -509,6 +513,51 @@ model StudentAttendanceRecord {
   student           User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([classAttendanceId, studentId])
+}
+model Notification {
+  id             String    @id @default(cuid())
+  title          String
+  message        String
+  type           NotificationType @default(INFO)
+  isGlobal       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  createdById    String
+  createdBy      User      @relation("NotificationCreator", fields: [createdById], references: [id])
+  targetRoles    String[]
+  cohorts        NotificationCohort[]
+  courses        NotificationCourse[]
+  reads          NotificationRead[]
+
+  @@map("notifications")
+}
+
+model NotificationCohort {
+  notificationId String
+  cohortId       String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  cohort         Cohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  @@id([notificationId, cohortId])
+  @@map("notification_cohorts")
+}
+
+model NotificationCourse {
+  notificationId String
+  courseId       String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  course         Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  @@id([notificationId, courseId])
+  @@map("notification_courses")
+}
+
+model NotificationRead {
+  notificationId String
+  userId         String
+  readAt         DateTime     @default(now())
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([notificationId, userId])
+  @@map("notification_reads")
 }
 
 enum Gender {

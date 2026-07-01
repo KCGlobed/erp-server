@@ -24,6 +24,7 @@ import { FacultyProfileModule } from './faculty-profile/faculty-profile.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { StudentProfileModule } from './student-profile/student-profile.module';
 import { ExperienceModule } from './experience/experience.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ExperienceModule } from './experience/experience.module';
     AttendanceModule,
     StudentProfileModule,
     ExperienceModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [
