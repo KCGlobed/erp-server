@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
 import { Public } from '../common/decorators/public.decorator';
@@ -100,5 +101,13 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Password reset' })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
+  }
+
+  @ApiBearerAuth()
+  @Post('change-password')
+  @ApiOperation({ summary: 'Change password for the logged-in user' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthUser) {
+    return this.authService.changePassword(user.id, dto);
   }
 }
