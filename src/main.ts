@@ -5,6 +5,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { ValidationPipe, Logger, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { RedisIoAdapter } from './redis.adapter';
 import { AppModule } from './app.module';
 
@@ -64,10 +65,17 @@ async function bootstrap() {
   );
 
   // ─── WebSockets Adapter ────────────────────────────────────────────────
-  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-  const redisIoAdapter = new RedisIoAdapter(app);
-  await redisIoAdapter.connectToRedis(redisUrl);
-  app.useWebSocketAdapter(redisIoAdapter);
+  try {
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisIoAdapter = new RedisIoAdapter(app);
+    await redisIoAdapter.connectToRedis(redisUrl);
+    app.useWebSocketAdapter(redisIoAdapter);
+    logger.log('Redis WebSocket adapter initialized successfully');
+  } catch (error) {
+    logger.error(`Failed to connect to Redis: ${(error as Error).message}`);
+    logger.warn('Falling back to default WebSocket adapter (Multi-instance sync will not work)');
+    app.useWebSocketAdapter(new IoAdapter(app));
+  }
 
   // ─── API Versioning ───────────────────────────────────────────────────
   app.enableVersioning({
