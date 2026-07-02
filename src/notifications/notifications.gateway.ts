@@ -96,4 +96,19 @@ export class NotificationsGateway
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
   }
+
+  @SubscribeMessage('ping')
+  handlePing(client: Socket) {
+    this.logger.log(`Received ping from ${client.id}`);
+    // Emit a test notification back directly to the client
+    client.emit('new_notification', {
+      id: 'test-ping-id',
+      title: 'WebSocket Works!',
+      message: 'You have successfully triggered a real-time event via WebSocket.',
+      type: 'INFO',
+      isGlobal: true,
+      createdAt: new Date(),
+      isRead: false
+    });
+  }
 }
