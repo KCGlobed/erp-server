@@ -40,7 +40,7 @@ export class NotificationsGateway
       }
 
       const token = authHeader.replace('Bearer ', '');
-      const secret = this.configService.get<string>('JWT_SECRET');
+      const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
 
       const payload = this.jwtService.verify(token, { secret });
       if (!payload || !payload.sub) {
