@@ -267,10 +267,7 @@ export class TimetableService {
         examWhere = { cohortId: { in: targetCohortIds } };
       } else if (currentUser.roles.includes('FACULTY')) {
         examWhere = {
-          OR: [
-            { invigilatorId: currentUser.id },
-            { cohortId: { in: targetCohortIds } },
-          ],
+          cohortId: { in: targetCohortIds },
         };
       } else {
         examWhere = { id: 'none' };
