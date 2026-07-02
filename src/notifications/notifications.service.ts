@@ -3,13 +3,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import type { AuthUser } from '../common/types/auth-user.type';
+import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gateway: NotificationsGateway,
+  ) {}
 
   async create(dto: CreateNotificationDto, user: AuthUser) {
-    return this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         title: dto.title,
         message: dto.message,
@@ -33,6 +37,26 @@ export class NotificationsService {
         courses: true,
       },
     });
+
+    const eventName = 'new_notification';
+    // Append isRead for the immediate push to the client
+    const payload = { ...notification, isRead: false };
+
+    if (notification.isGlobal) {
+      this.gateway.server.emit(eventName, payload);
+    } else {
+      dto.targetRoles?.forEach((role) => {
+        this.gateway.server.to(`role_${role}`).emit(eventName, payload);
+      });
+      dto.courseIds?.forEach((id) => {
+        this.gateway.server.to(`course_${id}`).emit(eventName, payload);
+      });
+      dto.cohortIds?.forEach((id) => {
+        this.gateway.server.to(`cohort_${id}`).emit(eventName, payload);
+      });
+    }
+
+    return notification;
   }
 
   async findAllForAdmin() {
